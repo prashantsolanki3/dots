@@ -23,8 +23,8 @@
         - unzip
         - wget
         - zip
-      tags: [ 'base_packages', 'packages' ]
-      become: yes
+      tags: ['base_packages', 'packages']
+      become: true
 
     - name: Install dev packages
       package:
@@ -32,8 +32,8 @@
         state: latest
       loop:
         - ffmpeg
-      become: yes
-      tags: [ 'packages' ]
+      become: true
+      tags: ['packages']
 
     - name: Remove not-needed packages
       package:
@@ -41,8 +41,8 @@
         state: absent
       loop:
         - fedora-chromium-config
-      tags: [ 'packages' ]
-      become: yes
+      tags: ['packages']
+      become: true
 
 # Create Dir
     - name: Create Test Dir
@@ -52,7 +52,7 @@
         mode: '0755'
         owner: root
         group: root
-      become: yes
+      become: true
 
     - name: Copy File in Test Dir
       copy:
@@ -61,7 +61,7 @@
         mode: '0644'
         owner: root
         group: root
-      become: yes
+      become: true
 
     - name: Ensure personal dot files
       copy:
@@ -74,7 +74,7 @@
         - { src: dots/wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
         - { src: dots/gitignore, dest: '/home/{{host_username}}/.gitignore' }
         - { src: dots/curlrc, dest: '/home/{{host_username}}/.curlrc' }
-      tags: [ 'dots' ]
+      tags: ['dots']
 
     - name: Ensure root dot files
       copy:
@@ -86,8 +86,8 @@
       loop:
         - { src: dots/wgetrc, dest: '/root/.wgetrc' }
         - { src: dots/curlrc, dest: '/root/.curlrc' }
-      become: yes
-      tags: [ 'dots' ]
+      become: true
+      tags: ['dots']
 
     - name: Ensure personal files (from templates)
       template:
@@ -109,8 +109,8 @@
       loop:
         - '/home/{{host_username}}/dots'
         - '/home/{{host_username}}/playground'
-      become: yes
-      tags: [ 'dir-structure' ]
+      become: true
+      tags: ['dir-structure']
 
     # Install python extra packages and ensure they are up to date.
     - name: Ensure pip3 packages
@@ -122,4 +122,5 @@
         - ansible
         - awscli
         - pipenv
-      become: yes
+      become: true
+      
