@@ -1,0 +1,125 @@
+---
+- name: Configure Fedora workstation
+  hosts: dev
+
+  vars:
+    host_username: ubuntu
+    authorized_keys: '{{ lookup("file", "files/id_rsa.pub") }}'
+  handlers:
+    - name: Restart sshd
+      service: name=sshd state=restarted
+      become: true
+  tasks:
+    - name: Install base system packages
+      package:
+        name: '{{item}}'
+        state: latest
+      loop:
+        - curl
+        - git
+        - htop
+        - python3
+        - python3-pip
+        - unzip
+        - wget
+        - zip
+      tags: [ 'base_packages', 'packages' ]
+      become: yes
+
+    - name: Install dev packages
+      package:
+        name: '{{item}}'
+        state: latest
+      loop:
+        - ffmpeg
+      become: yes
+      tags: [ 'packages' ]
+
+    - name: Remove not-needed packages
+      package:
+        name: '{{item}}'
+        state: absent
+      loop:
+        - fedora-chromium-config
+      tags: [ 'packages' ]
+      become: yes
+
+# Create Dir
+    - name: Create Test Dir
+      file:
+        path: /test-dir
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+      become: yes
+
+    - name: Copy File in Test Dir
+      copy:
+        src: user
+        dest: /test-dir/user
+        mode: '0644'
+        owner: root
+        group: root
+      become: yes
+
+    - name: Ensure personal dot files
+      copy:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '0600'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop:
+        - { src: dots/wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
+        - { src: dots/gitignore, dest: '/home/{{host_username}}/.gitignore' }
+        - { src: dots/curlrc, dest: '/home/{{host_username}}/.curlrc' }
+      tags: [ 'dots' ]
+
+    - name: Ensure root dot files
+      copy:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '0600'
+        owner: root
+        group: root
+      loop:
+        - { src: dots/wgetrc, dest: '/root/.wgetrc' }
+        - { src: dots/curlrc, dest: '/root/.curlrc' }
+      become: yes
+      tags: [ 'dots' ]
+
+    - name: Ensure personal files (from templates)
+      template:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '0600'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop:
+        - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
+
+    - name: Ensure default directories in home
+      file:
+        path: '{{item}}'
+        state: directory
+        mode: '0700'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop:
+        - '/home/{{host_username}}/dots'
+        - '/home/{{host_username}}/playground'
+      become: yes
+      tags: [ 'dir-structure' ]
+
+    # Install python extra packages and ensure they are up to date.
+    - name: Ensure pip3 packages
+      pip:
+        name: '{{item}}'
+        executable: pip3
+        state: latest
+      loop:
+        - ansible
+        - awscli
+        - pipenv
+      become: yes

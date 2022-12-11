@@ -1,0 +1,6 @@
+[all:vars]
+ansible_connection=ssh
+ansible_user=<ssh-user>
+
+[dev]
+<ip-of-vm>
