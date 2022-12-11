@@ -4,7 +4,7 @@
 
   vars:
     host_username: ubuntu
-    authorized_keys: '{{ lookup("file", "files/id_rsa.pub") }}'
+    authorized_keys: '{{ lookup("file", "../id_rsa.pub") }}'
   handlers:
     - name: Restart sshd
       service: name=sshd state=restarted
