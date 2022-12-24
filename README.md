@@ -4,13 +4,13 @@ This repository contains an Ansible playbook for setting up a development enviro
 
 <!--ts-->
 * [Ansible Dotfiles](#ansible-dotfiles)
-   * [What is this?](#what-is-this)
-   * [Requirements](#requirements)
-   * [How to use](#how-to-use)
-      * [Using <a href="https://github.com/prashantsolanki3/tf-dev-box">Terraform  Development Box</a> companion project](#using-terraform--development-box-companion-project)
-      * [Using manual installation](#using-manual-installation)
-      * [Run Ansible](#run-ansible)
-   * [Credits](#credits)
+  * [What is this?](#what-is-this)
+  * [Requirements](#requirements)
+  * [How to use](#how-to-use)
+    * [Using <a href="https://github.com/prashantsolanki3/tf-dev-box">Terraform  Development Box</a> companion project](#using-terraform--development-box-companion-project)
+    * [Using manual installation](#using-manual-installation)
+    * [Run Ansible](#run-ansible)
+  * [Credits](#credits)
 <!--te-->
 
 ## What is this?
@@ -19,8 +19,8 @@ This is an Ansible project used to configure and maintain ubuntu based developme
 
 ## Requirements
 
-- Ansible 2.9+
-- A Unix-based operating system (e.g. Linux, macOS)
+* Ansible 2.9+
+* A Unix-based operating system (e.g. Linux, macOS)
 
 ## How to use
 
@@ -31,7 +31,7 @@ Clone and Setup Development VM Terraform Repo. Follow the instructions to run th
 ### Using manual installation
 
 1. Set up machine with basic installation of Ubuntu Server.
-    - SSH server is required if you plan to complete the installation remotely.
+    * SSH server is required if you plan to complete the installation remotely.
 2. Move to non-default TTY or SSH into the machine remotely.
 3. Install Ansible and other dependencies `sudo apt install python3 python3-pip git`
 4. Install Ansible `sudo pip3 install ansible`
@@ -41,11 +41,11 @@ Clone and Setup Development VM Terraform Repo. Follow the instructions to run th
 
 ### Run Ansible
 
-- Run Ansible in check mode
+* Run Ansible in check mode
 
     ```ansible-playbook -i hosts dev.yml -K -C```
 
-- Run Ansible against the hosts defined in the `hosts` file.
+* Run Ansible against the hosts defined in the `hosts` file.
 
     ```ansible-playbook -i hosts dev.yml -K```
 
@@ -55,4 +55,4 @@ Clone and Setup Development VM Terraform Repo. Follow the instructions to run th
 
 ## Credits
 
-- [Addvilz](https://github.com/Addvilz/dots)
+* [Addvilz](https://github.com/Addvilz/dots)
