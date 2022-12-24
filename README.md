@@ -1,16 +1,24 @@
-# .dots
+# Ansible Dotfiles
 
-Dotfiles with Ansible!
+This repository contains an Ansible playbook for setting up a development environment on a new machine. It installs and configures various tools and dotfiles.
+
+<!--ts-->
+<!--te-->
 
 ## What is this?
 
 This is an Ansible project used to configure and maintain ubuntu based development VM, install software, manage dotfiles, manage the configuration and more.
 
+## Requirements
+
+- Ansible 2.9+
+- A Unix-based operating system (e.g. Linux, macOS)
+
 ## How to use
 
-### Using Terraform
+### Using [Terraform  Development Box](https://github.com/prashantsolanki3/tf-dev-box) companion project
 
-- Clone and Setup Development VM Terraform Repo. Follow the instructions to run the project. It would automatically use this project to create and configure a ubuntu vm on a proxmox host.
+Clone and Setup Development VM Terraform Repo. Follow the instructions to run the project. It would automatically use this project to create and configure a ubuntu vm on a proxmox host.
 
 ### Using manual installation
 
@@ -19,17 +27,24 @@ This is an Ansible project used to configure and maintain ubuntu based developme
 2. Move to non-default TTY or SSH into the machine remotely.
 3. Install Ansible and other dependencies `sudo apt install python3 python3-pip git`
 4. Install Ansible `sudo pip3 install ansible`
-5. Clone this repository to `~/dots/`.
-6. Edit `dev.yml` as required.
+5. Clone this repository to `git clone https://github.com/prashantsolanki3/dots.git ~/dots`
+6. Change directory: `cd ~/dots`
+7. Review the contents of the `dev.yml` file to see what tasks will be performed during the provisioning process. You can also add your own tasks and files by creating a new directory and adding them to the tasks and files directories, respectively.
 
-`ansible-playbook -i hosts dev.yml -K -C` to run Ansible in check mode.
-`ansible-playbook -i hosts dev.yml -K` to run Ansible against the host defined in the `hosts` file.
+### Run Ansible
 
-Root privileges required to install system packages and other configuration. 
-Ansible will ask you for your password to become root user.
-This is required because Ansible automates package installation, changes settings only accessible to root etc.
+- Run Ansible in check mode
 
-Once the playbooks are applied, you might need to reboot.
+    ```ansible-playbook -i hosts dev.yml -K -C```
 
-### Credits
+- Run Ansible against the hosts defined in the `hosts` file.
+
+    ```ansible-playbook -i hosts dev.yml -K```
+
+    Note: Root privileges required to install system packages and other configuration. Ansible will ask you for your password to become root user. This is required because Ansible automates package installation, changes settings only accessible to root etc.
+
+    Once the playbooks are applied, you might need to reboot.
+
+## Credits
+
 - [Addvilz](https://github.com/Addvilz/dots)
