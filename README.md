@@ -4,13 +4,13 @@ This repository contains an Ansible playbook for setting up a development enviro
 
 <!--ts-->
 * [Ansible Dotfiles](#ansible-dotfiles)
-  * [What is this?](#what-is-this)
-  * [Requirements](#requirements)
-  * [How to use](#how-to-use)
-    * [Using <a href="https://github.com/prashantsolanki3/tf-dev-box">Terraform  Development Box</a> companion project](#using-terraform--development-box-companion-project)
-    * [Using manual installation](#using-manual-installation)
-    * [Run Ansible](#run-ansible)
-  * [Credits](#credits)
+   * [What is this?](#what-is-this)
+   * [Requirements](#requirements)
+   * [How to use](#how-to-use)
+      * [Using <a href="https://github.com/prashantsolanki3/tf-dev-box">Terraform  Development Box</a> companion project](#using-terraform--development-box-companion-project)
+      * [Using manual installation](#using-manual-installation)
+      * [Run Ansible](#run-ansible)
+   * [Credits](#credits)
 <!--te-->
 
 ## What is this?
