@@ -1,9 +1,10 @@
 ---
 - name: Configure Fedora workstation
   hosts: dev
-
+  vars_files:
+    - ../host_vars
   vars:
-    host_username: ubuntu
+#    host_username: ubuntu
     authorized_keys: '{{ lookup("file", "../id_rsa.pub") }}'
   handlers:
     - name: Restart sshd
