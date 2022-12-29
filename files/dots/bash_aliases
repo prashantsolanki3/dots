@@ -1,0 +1,20 @@
+# Add your bash aliases here in the following format.
+# alias <name>="<command>"
+
+
+alias ls='ls -CHG --color'
+alias mkdir='mkdir -pv'
+alias f='find . |grep '
+alias h='history|grep '
+alias gc='git commit -m'
+alias la='ls -ahG'
+alias ll='ls -ahlG'
+
+# if user is not root, pass all commands via sudo #
+if [ $UID -ne 0 ]; then
+    alias reboot='sudo reboot'
+    alias update='sudo apt-get upgrade'
+fi
+
+alias diff='colordiff'
+alias refresh='ansible-playbook -i localhost dev.yml && source ~/.bashrc'

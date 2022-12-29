@@ -24,6 +24,7 @@
         - unzip
         - wget
         - zip
+        - colordiff
       tags: ['base_packages', 'packages']
       become: true
 
@@ -75,6 +76,7 @@
         - { src: dots/wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
         - { src: dots/gitignore, dest: '/home/{{host_username}}/.gitignore' }
         - { src: dots/curlrc, dest: '/home/{{host_username}}/.curlrc' }
+        - { src: dots/bash_aliases, dest: '/home/{{host_username}}/.bash_aliases' }
       tags: ['dots']
 
     - name: Ensure root dot files
@@ -87,6 +89,7 @@
       loop:
         - { src: dots/wgetrc, dest: '/root/.wgetrc' }
         - { src: dots/curlrc, dest: '/root/.curlrc' }
+        - { src: dots/bash_aliases, dest: '/root/.bash_aliases' }
       become: true
       tags: ['dots']
 
@@ -124,3 +127,4 @@
         - awscli
         - pipenv
       become: true
+
