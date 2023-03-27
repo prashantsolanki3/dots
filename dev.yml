@@ -1,5 +1,5 @@
 ---
-- name: Configure Fedora workstation
+- name: Configure Ubuntu
   hosts: dev
   vars_files:
     - ../host_vars
@@ -17,10 +17,7 @@
         state: latest
       loop:
         - curl
-        - git
         - htop
-        - python3
-        - python3-pip
         - unzip
         - wget
         - zip
@@ -33,51 +30,37 @@
         name: '{{item}}'
         state: latest
       loop:
+        - git
         - ffmpeg
+        - terraform
+        - python3
+        - python3-pip
       become: true
-      tags: ['packages']
+      tags: ['dev_packages', 'packages']
 
     - name: Remove not-needed packages
       package:
         name: '{{item}}'
         state: absent
       loop:
-        - fedora-chromium-config
-      tags: ['packages']
+        - chromium
+      tags: ['remove_packages']
       become: true
 
-# Create Dir
-    - name: Create Test Dir
-      file:
-        path: /test-dir
-        state: directory
-        mode: '0755'
-        owner: root
-        group: root
-      become: true
-
-    - name: Copy File in Test Dir
-      copy:
-        src: user
-        dest: /test-dir/user
-        mode: '0644'
-        owner: root
-        group: root
-      become: true
-
-    - name: Ensure personal dot files
+    - name: Ensure user dot files
       copy:
         src: '{{item.src}}'
         dest: '{{item.dest}}'
         mode: '0600'
         owner: '{{host_username}}'
         group: '{{host_username}}'
+      # Add user dot files here 
       loop:
-        - { src: dots/wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
-        - { src: dots/gitignore, dest: '/home/{{host_username}}/.gitignore' }
-        - { src: dots/curlrc, dest: '/home/{{host_username}}/.curlrc' }
+        - { src: dots/.wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
+        - { src: dots/.gitignore, dest: '/home/{{host_username}}/.gitignore' }
+        - { src: dots/.curlrc, dest: '/home/{{host_username}}/.curlrc' }
         - { src: dots/bash_aliases, dest: '/home/{{host_username}}/.bash_aliases' }
-      tags: ['dots']
+      tags: ['user_dots', 'dots']
 
     - name: Ensure root dot files
       copy:
@@ -86,14 +69,14 @@
         mode: '0600'
         owner: root
         group: root
+      # Add root dot files here
       loop:
         - { src: dots/wgetrc, dest: '/root/.wgetrc' }
         - { src: dots/curlrc, dest: '/root/.curlrc' }
-        - { src: dots/bash_aliases, dest: '/root/.bash_aliases' }
       become: true
       tags: ['dots']
 
-    - name: Ensure personal files (from templates)
+    - name: Ensure user files (from templates)
       template:
         src: '{{item.src}}'
         dest: '{{item.dest}}'
@@ -101,6 +84,7 @@
         owner: '{{host_username}}'
         group: '{{host_username}}'
       loop:
+        - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
         - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
 
     - name: Ensure default directories in home
