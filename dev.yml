@@ -2,7 +2,7 @@
 - name: Configure Ubuntu
   hosts: dev
   vars_files:
-    - ../host_vars
+    - ../host_vars.yaml
   # vars:
 #    host_username: ubuntu
     # authorized_keys: '{{ lookup("file", "../id_rsa.pub") }}'
