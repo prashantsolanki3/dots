@@ -23,7 +23,7 @@
         - wget
         - zip
         - colordiff
-        - lsb_release
+        - lsb-release
       tags: ['base_packages', 'packages']
       become: true
     - name: Add HashiCorp GPG key
