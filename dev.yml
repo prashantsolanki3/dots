@@ -3,6 +3,7 @@
   hosts: dev
   vars_files:
     - ../host_vars.yaml
+  become: true
   # vars:
 #    host_username: ubuntu
     # authorized_keys: '{{ lookup("file", "../id_rsa.pub") }}'
@@ -22,9 +23,17 @@
         - wget
         - zip
         - colordiff
+        - lsb_release
       tags: ['base_packages', 'packages']
       become: true
-
+    - name: Add HashiCorp GPG key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+    - name: Add HashiCorp repository
+      apt_repository:
+        repo: deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main
+        state: present
     - name: Install dev packages
       package:
         name: '{{item}}'
