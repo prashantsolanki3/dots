@@ -129,7 +129,7 @@
       file:
         path: '/mnt/{{mount}}'
         state: directory
-        mode: '0700'
+        mode: '0755'
         owner: '{{host_username}}'
         group: '{{host_username}}'
       loop: "{{ glusterfs_mounts_list }}"
