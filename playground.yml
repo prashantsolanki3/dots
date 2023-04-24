@@ -2,7 +2,7 @@
 - name: Configure Ubuntu
   hosts: dev
   vars_files:
-    - ../host_vars.yaml
+    - ../playground_host_vars.yaml
   become: true
   # vars:
 #    host_username: ubuntu
