@@ -12,6 +12,9 @@
       service: name=sshd state=restarted
       become: true
   tasks:
+    - name: Split glusterfs mounts var
+      set_fact:
+        glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
     - name: Install base system packages
       package:
         name: '{{item}}'
@@ -121,3 +124,26 @@
         - awscli
         - pipenv
       become: true
+
+    - name: Ensure glusterfs mount directories
+      file:
+        path: '/mnt/{{mount}}'
+        state: directory
+        mode: '0700'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop: "{{ glusterfs_mounts_list }}"
+      loop_control:
+        loop_var: mount
+      become: true
+      tags: ['dir-structure', 'glusterfs', 'mounts']
+
+    - name: Add GlusterFS volumes to fstab
+      lineinfile:
+        path: "/etc/fstab"
+        line: "{{ glusterfs_server }}:/{{ mount }} /mnt/{{ mount }} glusterfs defaults,_netdev 0 0"
+        state: present
+      loop: "{{ glusterfs_mounts_list }}"
+      loop_control:
+        loop_var: mount
+      tags: ['dir-structure', 'glusterfs']
