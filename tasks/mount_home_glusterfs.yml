@@ -1,0 +1,30 @@
+---
+- name: Ensure glusterfs home directories
+  file:
+    path: "/home/{{ mount | regex_search('.+_.+_(.+)',  '\\1') | first }}"
+    state: directory
+    mode: '0755'
+    owner: '{{host_username}}'
+    group: '{{host_username}}'
+  loop: "{{ glusterfs_home_mounts_list }}"
+  loop_control:
+    loop_var: mount
+  when: glusterfs_home_mounts_list != None
+  become: true
+  tags: ['dir-structure', 'glusterfs', 'mounts', 'home']
+
+- name: Add GlusterFS home volumes to fstab
+  lineinfile:
+    path: "/etc/fstab"
+    line: "{{ glusterfs_server }}:/{{ mount }} /home/{{ mount | regex_search('.+_.+_(.+)',  '\\1') | first }} glusterfs defaults,_netdev 0 0"
+    state: present
+  loop: "{{ glusterfs_home_mounts_list }}"
+  loop_control:
+    loop_var: mount
+  when: glusterfs_home_mounts_list != None
+  tags: ['dir-structure', 'glusterfs']
+
+- name: mount all
+  command: mount -a
+  become: true
+  tags: ['dir-structure', 'glusterfs']   
