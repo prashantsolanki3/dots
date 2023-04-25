@@ -36,9 +36,11 @@
         glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
 
     - name:  Mount Home glusterfs volumes
+      when: glusterfs_home_mounts_list is defined
       include_tasks: tasks/mount_home_glusterfs.yml
 
     - name:  Mount Other Glusterfs volumes
+      when: glusterfs_mounts_list is defined
       include_tasks: tasks/mount_glusterfs.yml
 
     # Install user packages
