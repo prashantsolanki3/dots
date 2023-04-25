@@ -9,7 +9,7 @@
   loop: "{{ glusterfs_mounts_list }}"
   loop_control:
     loop_var: mount
-  when: glusterfs_mounts_list != None
+  when: glusterfs_mounts_list is defined
   become: true
   tags: ['dir-structure', 'glusterfs', 'mounts']
 
@@ -21,10 +21,11 @@
   loop: "{{ glusterfs_mounts_list }}"
   loop_control:
     loop_var: mount
-  when: glusterfs_mounts_list != None
+  when: glusterfs_mounts_list is defined
   tags: ['dir-structure', 'glusterfs']
 
 - name: mount all
   command: mount -a
+  when: glusterfs_mounts_list is defined
   become: true
   tags: ['dir-structure', 'glusterfs'] 
