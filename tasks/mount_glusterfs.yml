@@ -9,7 +9,7 @@
   loop: "{{ glusterfs_mounts_list }}"
   loop_control:
     loop_var: mount
-  when: glusterfs_mounts_list != None
+  when: glusterfs_mounts_list is defined
   become: true
   tags: ['dir-structure', 'glusterfs', 'mounts']
 
@@ -19,7 +19,7 @@
     line: "{{ glusterfs_server }}:/{{ mount }} /mnt/{{ mount }} glusterfs defaults,_netdev 0 0"
     state: present
   loop: "{{ glusterfs_mounts_list }}"
-  when: glusterfs_mounts_list != None
+  when: glusterfs_mounts_list is defined
   loop_control:
     loop_var: mount
   tags: ['dir-structure', 'glusterfs']
@@ -27,4 +27,5 @@
 - name: mount all
   command: mount -a
   become: true
+  when: glusterfs_mounts_list is defined
   tags: ['dir-structure', 'glusterfs'] 
