@@ -9,6 +9,7 @@
   loop: "{{ glusterfs_home_mounts_list }}"
   loop_control:
     loop_var: mount
+  when: glusterfs_home_mounts_list != None
   become: true
   tags: ['dir-structure', 'glusterfs', 'mounts', 'home']
 
@@ -20,6 +21,7 @@
   loop: "{{ glusterfs_home_mounts_list }}"
   loop_control:
     loop_var: mount
+  when: glusterfs_home_mounts_list != None
   tags: ['dir-structure', 'glusterfs']
 
 - name: mount all
