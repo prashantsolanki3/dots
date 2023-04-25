@@ -79,6 +79,16 @@
       become: true
       tags: ['dots']
 
+    - name: Ensure default directories in home
+      file:
+        path: '{{item}}'
+        state: directory
+        mode: '0700'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop:
+        - '/home/{{host_username}}/.ssh'
+
     - name: Ensure user files (from templates)
       template:
         src: '{{item.src}}'
