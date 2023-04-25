@@ -4,9 +4,6 @@
   vars_files:
     - ../playground_host_vars.yaml
   become: true
-  # vars:
-#    host_username: ubuntu
-    # authorized_keys: '{{ lookup("file", "../id_rsa.pub") }}'
   handlers:
     - name: Restart sshd
       service: name=sshd state=restarted
@@ -33,62 +30,11 @@
         glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
         glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
 
-    - name: Ensure glusterfs home directories
-      file:
-        path: "/home/{{ mount | regex_search('.+_.+_(.+)',  '\\1') | first }}"
-        state: directory
-        mode: '0755'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
-      loop: "{{ glusterfs_home_mounts_list }}"
-      loop_control:
-        loop_var: mount
-      become: true
-      tags: ['dir-structure', 'glusterfs', 'mounts', 'home']
+    - name:  Mount Home glusterfs volumes
+      include_tasks: tasks/mount_home_glusterfs.yml
 
-    - name: Add GlusterFS home volumes to fstab
-      lineinfile:
-        path: "/etc/fstab"
-        line: "{{ glusterfs_server }}:/{{ mount }} /home/{{ mount | regex_search('.+_.+_(.+)',  '\\1') | first }} glusterfs defaults,_netdev 0 0"
-        state: present
-      loop: "{{ glusterfs_home_mounts_list }}"
-      loop_control:
-        loop_var: mount
-      tags: ['dir-structure', 'glusterfs']
-
-    - name: mount all
-      command: mount -a
-      become: true
-      tags: ['dir-structure', 'glusterfs']  
-
-    - name: Ensure glusterfs mount directories
-      file:
-        path: '/mnt/{{mount}}'
-        state: directory
-        mode: '0755'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
-      loop: "{{ glusterfs_mounts_list }}"
-      loop_control:
-        loop_var: mount
-      become: true
-      tags: ['dir-structure', 'glusterfs', 'mounts']
-
-    - name: Add GlusterFS volumes to fstab
-      lineinfile:
-        path: "/etc/fstab"
-        line: "{{ glusterfs_server }}:/{{ mount }} /mnt/{{ mount }} glusterfs defaults,_netdev 0 0"
-        state: present
-      loop: "{{ glusterfs_mounts_list }}"
-      loop_control:
-        loop_var: mount
-      tags: ['dir-structure', 'glusterfs']
-
-    - name: mount all
-      command: mount -a
-      become: true
-      tags: ['dir-structure', 'glusterfs']  
-
+    - name:  Mount Other Glusterfs volumes
+      include_tasks: tasks/mount_glusterfs.yml
 
     # Install user packages
     - name: Add HashiCorp GPG key
