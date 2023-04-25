@@ -32,6 +32,35 @@
       set_fact:
         glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
         glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
+
+    - name: Ensure glusterfs home directories
+      file:
+        path: "/home/{{ mount | regex_search('.+_.+_(.+)',  '\\1') | first }}"
+        state: directory
+        mode: '0755'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop: "{{ glusterfs_home_mounts_list }}"
+      loop_control:
+        loop_var: mount
+      become: true
+      tags: ['dir-structure', 'glusterfs', 'mounts', 'home']
+
+    - name: Add GlusterFS home volumes to fstab
+      lineinfile:
+        path: "/etc/fstab"
+        line: "{{ glusterfs_server }}:/{{ mount }} /home/{{ mount | regex_search('.+_.+_(.+)',  '\\1') | first }} glusterfs defaults,_netdev 0 0"
+        state: present
+      loop: "{{ glusterfs_home_mounts_list }}"
+      loop_control:
+        loop_var: mount
+      tags: ['dir-structure', 'glusterfs']
+
+    - name: mount all
+      command: mount -a
+      become: true
+      tags: ['dir-structure', 'glusterfs']  
+
     - name: Ensure glusterfs mount directories
       file:
         path: '/mnt/{{mount}}'
@@ -51,29 +80,6 @@
         line: "{{ glusterfs_server }}:/{{ mount }} /mnt/{{ mount }} glusterfs defaults,_netdev 0 0"
         state: present
       loop: "{{ glusterfs_mounts_list }}"
-      loop_control:
-        loop_var: mount
-      tags: ['dir-structure', 'glusterfs']
-
-    - name: Ensure glusterfs home directories
-      file:
-        path: '/home/{{mount}}'
-        state: directory
-        mode: '0755'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
-      loop: "{{ glusterfs_home_mounts_list }}"
-      loop_control:
-        loop_var: mount
-      become: true
-      tags: ['dir-structure', 'glusterfs', 'mounts']
-
-    - name: Add GlusterFS home volumes to fstab
-      lineinfile:
-        path: "/etc/fstab"
-        line: "{{ glusterfs_server }}:/{{ mount }} /home/{{ mount | regex_search('.+_.+_(.+)',  '\\1') | first }} glusterfs defaults,_netdev 0 0"
-        state: present
-      loop: "{{ glusterfs_home_mounts_list }}"
       loop_control:
         loop_var: mount
       tags: ['dir-structure', 'glusterfs']
@@ -144,17 +150,6 @@
       become: true
       tags: ['dots']
 
-    - name: Ensure user files (from templates)
-      template:
-        src: '{{item.src}}'
-        dest: '{{item.dest}}'
-        mode: '0600'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
-      loop:
-        - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
-        - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
-
     - name: Ensure default directories in home
       file:
         path: '{{item}}'
@@ -165,8 +160,19 @@
       loop:
         - '/home/{{host_username}}/dots'
         - '/home/{{host_username}}/playground'
+        - '/home/{{host_username}}/.ssh'
       become: true
       tags: ['dir-structure']
+
+    - name: Ensure user files (from templates)
+      template:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '0600'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop:
+        - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
 
     # Install python extra packages and ensure they are up to date.
     - name: Ensure pip3 packages
