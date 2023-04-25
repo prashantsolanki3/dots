@@ -12,9 +12,6 @@
       service: name=sshd state=restarted
       become: true
   tasks:
-    - name: Split glusterfs mounts var
-      set_fact:
-        glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
     - name: Install base system packages
       package:
         name: '{{item}}'
@@ -27,8 +24,48 @@
         - zip
         - colordiff
         - lsb-release
+        - glusterfs-client
       tags: ['base_packages', 'packages']
       become: true
+
+    - name: Split glusterfs mounts var
+      set_fact:
+        glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
+    - name: Ensure glusterfs mount directories
+      file:
+        path: '/mnt/{{mount}}'
+        state: directory
+        mode: '0755'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop: "{{ glusterfs_mounts_list }}"
+      loop_control:
+        loop_var: mount
+      become: true
+      tags: ['dir-structure', 'glusterfs', 'mounts']
+
+    - name: Add GlusterFS volumes to fstab
+      lineinfile:
+        path: "/etc/fstab"
+        line: "{{ glusterfs_server }}:/{{ mount }} /mnt/{{ mount }} glusterfs defaults,_netdev 0 0"
+        state: present
+      loop: "{{ glusterfs_mounts_list }}"
+      loop_control:
+        loop_var: mount
+      tags: ['dir-structure', 'glusterfs']
+
+    - name: mount all
+      command: mount -a
+      become: true
+      tags: ['dir-structure', 'glusterfs']  
+
+    - name: Creating a symlink to home directory
+      ansible.builtin.file:
+        src: "/mnt/home_playground_{{host_username}}"
+        dest: "/home/{{host_username}}"
+        state: link
+
+    # Install user packages
     - name: Add HashiCorp GPG key
       apt_key:
         url: https://apt.releases.hashicorp.com/gpg
@@ -47,7 +84,6 @@
         - terraform
         - python3
         - python3-pip
-        - glusterfs-client
       become: true
       tags: ['dev_packages', 'packages']
 
@@ -125,30 +161,5 @@
         - pipenv
       become: true
 
-    - name: Ensure glusterfs mount directories
-      file:
-        path: '/mnt/{{mount}}'
-        state: directory
-        mode: '0755'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
-      loop: "{{ glusterfs_mounts_list }}"
-      loop_control:
-        loop_var: mount
-      become: true
-      tags: ['dir-structure', 'glusterfs', 'mounts']
 
-    - name: Add GlusterFS volumes to fstab
-      lineinfile:
-        path: "/etc/fstab"
-        line: "{{ glusterfs_server }}:/{{ mount }} /mnt/{{ mount }} glusterfs defaults,_netdev 0 0"
-        state: present
-      loop: "{{ glusterfs_mounts_list }}"
-      loop_control:
-        loop_var: mount
-      tags: ['dir-structure', 'glusterfs']  
-    - name: mount all
-      command: mount -a
-      become: true
-      tags: ['dir-structure', 'glusterfs']  
 
