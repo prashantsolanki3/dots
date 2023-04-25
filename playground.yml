@@ -29,8 +29,8 @@
       become: true
       register: result
       until: result is not failed
-      retries: {{ apt_retries }}
-      delay: {{ apt_retry_delay }}
+      retries: '{{ apt_retries }}'
+      delay: '{{ apt_retry_delay }}'
 
     - name: Split glusterfs mounts var
       when: glusterfs_mounts != None
@@ -75,8 +75,8 @@
       become: true
       register: result
       until: result is not failed
-      retries: {{ apt_retries }}
-      delay: {{ apt_retry_delay }}
+      retries: '{{ apt_retries }}'
+      delay: '{{ apt_retry_delay }}'
       tags: ['dev_packages', 'packages']
 
     - name: Remove not-needed packages
