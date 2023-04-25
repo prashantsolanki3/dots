@@ -83,12 +83,6 @@
       become: true
       tags: ['dir-structure', 'glusterfs']  
 
-    - name: Creating a symlink to home directory
-      ansible.builtin.file:
-        src: "/mnt/home_playground_{{host_username}}"
-        dest: "/home/{{host_username}}"
-        state: link
-      become: true
 
     # Install user packages
     - name: Add HashiCorp GPG key
