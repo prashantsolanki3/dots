@@ -4,9 +4,6 @@
   vars_files:
     - ../bootstrap_host_vars.yaml
   become: true
-  # vars:
-#    host_username: ubuntu
-    # authorized_keys: '{{ lookup("file", "../id_rsa.pub") }}'
   handlers:
     - name: Restart sshd
       service: name=sshd state=restarted
@@ -24,36 +21,10 @@
         - zip
         - colordiff
         - lsb-release
-      tags: ['base_packages', 'packages']
-      become: true
-    - name: Add HashiCorp GPG key
-      apt_key:
-        url: https://apt.releases.hashicorp.com/gpg
-        state: present
-    - name: Add HashiCorp repository
-      apt_repository:
-        repo: deb [arch=amd64] https://apt.releases.hashicorp.com {{ansible_distribution_release}} main
-        state: present
-    - name: Install dev packages
-      package:
-        name: '{{item}}'
-        state: latest
-      loop:
         - git
-        - ffmpeg
-        - terraform
         - python3
         - python3-pip
-      become: true
-      tags: ['dev_packages', 'packages']
-
-    - name: Remove not-needed packages
-      package:
-        name: '{{item}}'
-        state: absent
-      loop:
-        - chromium
-      tags: ['remove_packages']
+      tags: ['base_packages', 'packages']
       become: true
 
     - name: Ensure user dot files
@@ -94,29 +65,3 @@
         group: '{{host_username}}'
       loop:
         - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
-        - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
-
-    - name: Ensure default directories in home
-      file:
-        path: '{{item}}'
-        state: directory
-        mode: '0700'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
-      loop:
-        - '/home/{{host_username}}/dots'
-        - '/home/{{host_username}}/playground'
-      become: true
-      tags: ['dir-structure']
-
-    # Install python extra packages and ensure they are up to date.
-    - name: Ensure pip3 packages
-      pip:
-        name: '{{item}}'
-        executable: pip3
-        state: latest
-      loop:
-        - ansible
-        - awscli
-        - pipenv
-      become: true
