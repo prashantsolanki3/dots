@@ -27,6 +27,10 @@
         - glusterfs-client
       tags: ['base_packages', 'packages']
       become: true
+      register: result
+      until: result is not failed
+      retries: 5
+      delay: 5
 
     - name: Split glusterfs mounts var
       when: glusterfs_mounts != None
