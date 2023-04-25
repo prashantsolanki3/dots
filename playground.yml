@@ -153,5 +153,6 @@
         - pipenv
       become: true
 
-
-
+    - name: Install Code Server
+      include_tasks: tasks/install_code_server.yml
+      
