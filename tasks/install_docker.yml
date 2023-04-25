@@ -1,0 +1,50 @@
+- name: Install dependencies
+  apt:
+    name: 
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+  register: result
+  until: result is not failed
+  retries: 5
+  delay: 5
+  become: true
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: true
+
+- name: Add Docker APT repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+  become: true
+
+- name: Install Docker
+  apt:
+    name: docker-ce
+    state: present
+  register: result
+  until: result is not failed
+  retries: 5
+  delay: 5
+  become: true
+
+- name: Add user to Docker group
+  user:
+    name: "{{ host_username }}"
+    append: yes
+    groups: docker
+  become: true
+
+- name: Install Docker Compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: 'a+x'
+  become: true

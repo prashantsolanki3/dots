@@ -47,6 +47,9 @@
       when: glusterfs_mounts_list is defined
       include_tasks: tasks/mount_glusterfs.yml
 
+    - name: Install Docker
+      include_tasks: tasks/install_docker.yml
+
     # Install user packages
     - name: Add HashiCorp GPG key
       apt_key:
