@@ -26,12 +26,12 @@
       become: true
 
     - name: Split glusterfs mounts var
-      when: glusterfs_mounts is undefined
+      when: glusterfs_mounts != None
       set_fact:
         glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
 
     - name: Split glusterfs home mounts var
-      when: glusterfs_home_mounts is undefined
+      when: glusterfs_home_mounts != None
       set_fact:
         glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
 

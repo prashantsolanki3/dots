@@ -20,6 +20,7 @@
   loop: "{{ glusterfs_mounts_list }}"
   loop_control:
     loop_var: mount
+  become: true
   tags: ['dir-structure', 'glusterfs']
 
 - name: mount all
