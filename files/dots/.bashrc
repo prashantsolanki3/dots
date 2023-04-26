@@ -110,12 +110,6 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-export PATH=$HOME/.arkade/bin:$PATH
-export PATH=$HOME/.arkade/bin:$PATH
-source ~/arkade_bash_completion.sh
-source <(kubectl completion bash)
-source <(kompose completion bash)
-
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
