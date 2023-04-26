@@ -151,8 +151,11 @@
         - ansible
         - awscli
         - pipenv
+        - jupyterlab
       become: true
+
+    - name: Configure Git
+      include_tasks: tasks/configure_git.yml
 
     - name: Install Code Server
       include_tasks: tasks/install_code_server.yml
-      

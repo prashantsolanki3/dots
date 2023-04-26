@@ -1,0 +1,13 @@
+---
+- name: Install Git
+  apt:
+    name: git
+    state: present
+- name: Configure Git Name
+  git_config:
+    name: user.name
+    value: "Prashant Solanki"
+- name: Configure Git Email
+  git_config:
+    name: user.email
+    value: "solankisrp2@gmail.com"
