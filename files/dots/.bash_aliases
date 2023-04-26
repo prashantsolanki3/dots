@@ -21,7 +21,7 @@ alias diff='colordiff'
 #alias refresh-ansible='ansible-playbook -i localhost dev.yml && source ~/.bashrc'
 
 # Python aliases
-alias cv='coverage run -m pytest tests & coverage report -m --omit="tests/**"'
+alias cv='coverage run -m pytest tests && coverage report -m --omit="tests/**"'
 alias cv-install='python3 -m pip install coverage'
 alias py-venv-create='python3 -m venv .venv'
 alias py-venv-activate='. .venv/bin/activate'
