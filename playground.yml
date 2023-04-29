@@ -61,7 +61,7 @@
         state: present
     - name: Add APT repositories
       apt_repository:
-        repo: {{item}}
+        repo: '{{item}}'
         state: present
       loop: 
         - deb [arch=amd64] https://apt.releases.hashicorp.com {{ansible_distribution_release}} main
