@@ -154,7 +154,19 @@
         state: latest
       loop:
         - pipenv
+        - ansible
       become: true
 
     - name: Configure Git
       include_tasks: tasks/configure_git.yml
+    
+    - name: Clone Git Repos
+      git:
+        repo: '{{item.repo}}'
+        dest: '{{item.dest}}'
+        accept_hostkey: true
+      become: true
+      loop:
+        - { repo: 'https://github.com/ahembree/ansible-hms-docker.git', 
+            dest: '/home/{{host_username}}/media_server_apps/ansible-hms-docker' }
+
