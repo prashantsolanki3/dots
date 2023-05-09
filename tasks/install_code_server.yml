@@ -10,12 +10,18 @@
   become: true
   command: bash +x /tmp/install-code-server.sh
 
+- name: Check code server config file
+  stat:
+    path: /home/{{host_username}}/.config/code-server/config.yaml
+  register: code_server_config
+
 - name: Configure Code Server - Bind Addr
   lineinfile:
     path: /home/{{host_username}}/.config/code-server/config.yaml
     regexp: '^bind-addr:'
     line: 'bind-addr: 0.0.0.0:8080'
     state: present
+  when: code_server_config.stat.exists == True
 
 - name: Enable Code Server Service
   become: true
