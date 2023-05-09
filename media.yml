@@ -73,15 +73,10 @@
       loop:
         - git
         - ffmpeg
-        - terraform
         - python3
         - python3-dev
         - python3-pip
         - python3-venv
-        - python3.10
-        - python3.10-distutils
-        - python3.10-dev
-        - python3.10-venv
       become: true
       register: result
       until: result is not failed
@@ -137,8 +132,6 @@
         owner: '{{host_username}}'
         group: '{{host_username}}'
       loop:
-        - '/home/{{host_username}}/dots'
-        - '/home/{{host_username}}/playground'
         - '/home/{{host_username}}/.ssh'
       become: true
       tags: ['dir-structure']
@@ -160,14 +153,8 @@
         executable: pip3
         state: latest
       loop:
-        - ansible
-        - awscli
         - pipenv
-        - jupyterlab
       become: true
 
     - name: Configure Git
       include_tasks: tasks/configure_git.yml
-
-    - name: Install Code Server
-      include_tasks: tasks/install_code_server.yml
