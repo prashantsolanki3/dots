@@ -21,13 +21,14 @@ alias diff='colordiff'
 #alias refresh-ansible='ansible-playbook -i localhost dev.yml && source ~/.bashrc'
 
 # Python aliases
+alias python310='python3.10'
 alias cv='coverage run -m pytest tests && coverage report -m --omit="tests/**"'
-alias cv-install='python3 -m pip install coverage'
-alias py-venv-create='python3 -m venv .venv'
+alias cv-install='python310 -m pip install coverage'
+alias py-venv-create='python310 -m venv .venv'
 alias py-venv-activate='. .venv/bin/activate'
 alias py-venv-check-and-activate='[[ "$VIRTUAL_ENV" == "" ]]; INVENV=$? && if [ $INVENV != 0 ]; then echo ".venv active"; else echo ".venv not active. Activating .venv" && py-venv-activate; fi'
-alias py-venv-install-app-and-test='py-venv-check-and-activate && python3 -m pip install -r requirements.txt && python3 -m pip install -r tests/requirements.txt'
-alias py-venv-refresh='deactivate && rm -rf .venv && python3 -m venv .venv && py-venv-install-app-and-test && cv-install'
+alias py-venv-install-app-and-test='py-venv-check-and-activate && python310 -m pip install -r requirements.txt && python310 -m pip install -r tests/requirements.txt'
+alias py-venv-refresh='deactivate && rm -rf .venv && python310 -m venv .venv && py-venv-install-app-and-test && cv-install'
 
 # Jekyll aliases
 alias jekyllserve='docker run --volume="$PWD:/srv/jekyll:Z" -p 4000:4000 -it jekyll/jekyll jekyll serve'
