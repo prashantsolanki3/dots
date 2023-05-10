@@ -1,1 +1,11 @@
 ---
+# Copy config files to the remote location
+- name: Copy HMS Config
+  become: true
+  copy:
+    src: ansible-hms-docker-config.yml
+    dest: /opt/ansible-hms-docker/vars/default.yml
+
+- name: Run HMS Docker
+  become: true
+  command: ansible-playbook -i /opt/ansible-hms-docker/inventory --connection local /opt/ansible-hms-docker/hms-docker.yml

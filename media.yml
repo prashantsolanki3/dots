@@ -165,8 +165,10 @@
     - name: Configure Git
       include_tasks: tasks/configure_git.yml
 
-    - name: Clone Root Git repositories
-      include_tasks: tasks/clone_git_repos_as_root.yml
+    # - name: Clone Root Git repositories
+    #   include_tasks: tasks/clone_git_repos_as_root.yml
+
+# TODO: Run the Ansible HMS Docker Install playbook using terraform
 
     # - name: Configure and Install Ansible HMS Docker
     #   include_tasks: tasks/configure_and_install_ansible_hms_docker.yml
