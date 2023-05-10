@@ -1,0 +1,14 @@
+---
+- name: Check if root Git repository exists
+  stat:
+    path: "{{ item.dest }}/.git"
+  register: root_git_repos
+  with_items: "{{ root_repos }}"
+
+- name: Clone root Git repository
+  git:
+    repo: "{{ item.item.url }}"
+    dest: "{{ item.item.dest }}"
+  when: not item.stat.exists
+  with_items: "{{ root_git_repos.results }}"
+  become: true

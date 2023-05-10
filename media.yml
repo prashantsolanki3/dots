@@ -7,6 +7,11 @@
   vars:
     apt_retries: 15 
     apt_retry_delay: 10
+    root_repos:
+      - name: "Ansible HMS Docker"
+        url: 'https://github.com/prashantsolanki3/ansible-hms-docker.git' 
+        dest: '/opt/ansible-hms-docker'
+
   handlers:
     - name: Restart sshd
       service: name=sshd state=restarted
@@ -159,14 +164,9 @@
 
     - name: Configure Git
       include_tasks: tasks/configure_git.yml
-    
-    - name: Clone Git Repos
-      git:
-        repo: '{{item.repo}}'
-        dest: '{{item.dest}}'
-        accept_hostkey: true
-      become: true
-      loop:
-        - { repo: 'https://github.com/ahembree/ansible-hms-docker.git', 
-            dest: '/home/{{host_username}}/media_server_apps/ansible-hms-docker' }
 
+    - name: Clone Root Git repositories
+      include_tasks: tasks/clone_git_repos_as_root.yml
+
+    # - name: Configure and Install Ansible HMS Docker
+    #   include_tasks: tasks/configure_and_install_ansible_hms_docker.yml
