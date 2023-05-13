@@ -1,6 +1,7 @@
 ---
 - name: Ensure glusterfs home directories
   file:
+    # Extract the last part of the mount name, which is the username
     path: "/home/{{ mount | regex_search('.+_.+_(.+)',  '\\1') | first }}"
     state: directory
     mode: '0755'
