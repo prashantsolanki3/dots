@@ -63,6 +63,10 @@
   #   - role: monolithprojects.github_actions_runner
     
   tasks:
+    - name: Split Runner Github Repos
+      when: github_repos != None
+      set_fact:
+        github_repos_list: "{{ github_repos.split(',') }}"
     - name: Create Docker Github Runner
       include_tasks: tasks/create_docker_github_runner.yml
 
