@@ -1,5 +1,5 @@
 # Runner user - user under which is the local runner service running
-runner_user: "{{ lookup('env','USER') }}"
+runner_user: "{{ host_username }}"
 
 # Directory where the local runner will be installed
 runner_dir: /opt/actions-runner
