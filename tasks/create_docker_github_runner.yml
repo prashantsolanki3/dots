@@ -1,0 +1,13 @@
+---
+- name: Create environment file
+  template: src=github-actions/ephemeral-github-actions-runner.env.j2 dest=/etc/{{item}}-github-actions-runner.env mode=600
+  with_items: "{{ github_repos }}"
+
+- name: Create Unit file
+  template: src=github-actions/ephemeral-github-actions-runner.service.j2 dest=/etc/systemd/system/{{item}}-github-actions-runner.service mode=644
+  with_items: "{{ github_repos }}"
+  notify:
+    - reload systemctl
+- name: Start Github runner
+  service: name={{ item }}-github-actions-runner.service state=started enabled=yes
+  with_items: "{{ github_repos }}"
