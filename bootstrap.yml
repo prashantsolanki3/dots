@@ -14,7 +14,7 @@
     - name: Restart sshd
       service: name=sshd state=restarted
       become: true
-  tasks:
+  pre_tasks:
     - name: Install base system packages
       package:
         name: '{{item}}'
@@ -55,7 +55,7 @@
     - name:  Mount Other Glusterfs volumes
       when: glusterfs_mounts_list is defined
       include_tasks: tasks/mount_glusterfs.yml
-
+  tasks:
     - name: Ensure user dot files
       copy:
         src: '{{item.src}}'
