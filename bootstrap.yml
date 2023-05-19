@@ -3,7 +3,7 @@
   hosts: dev
   vars_files:
     - ../bootstrap_host_vars.yaml
-    - ./vars/bootstrap_defaults.yaml
+    - vars/bootstrap_defaults.yml
   become: true
   vars:
     apt_retries: 15 
