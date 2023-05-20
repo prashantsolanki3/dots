@@ -24,7 +24,9 @@ glusterfs_volumes:
       name: 'infra', 
       brick_path: '/mnt/store/infra', 
       owner: "{{ default_glusterfs_volume_owner }}", 
-      group: "{{ default_glusterfs_volume_group }}" 
+      group: "{{ default_glusterfs_volume_group }}",
+      config_state: present,
+      start_state: started
     }
   - { 
       name: 'home_playground', 
