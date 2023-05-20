@@ -21,6 +21,7 @@ ExecStartPre=-/usr/bin/docker pull myoung34/github-runner:latest
 ExecStart=/usr/bin/docker run --rm \
                               --env-file /etc/{{item}}-github-actions-runner.env \
                               -v /var/run/docker.sock:/var/run/docker.sock \
+                              -v /mnt/env/{{item}}:/mnt/env/{{item}} \
                               --name %N-{{item}} \
                               myoung34/github-runner:latest
 [Install]

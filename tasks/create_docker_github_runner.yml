@@ -3,6 +3,15 @@
   template: src=github-actions/ephemeral-github-actions-runner.env.j2 dest=/etc/{{item}}-github-actions-runner.env mode=600
   with_items: "{{ github_repos_list }}"
 
+- name: Ensure app env directory
+  file:
+    path: "/mnt/env/{{item}}"
+    state: directory
+    mode: '0755'
+    owner: '{{host_username}}'
+    group: '{{host_username}}'
+  with_items: "{{ github_repos_list }}"
+
 - name: Create Unit file
   template: src=github-actions/ephemeral-github-actions-runner.service.j2 dest=/etc/systemd/system/{{item}}-github-actions-runner.service mode=644
   with_items: "{{ github_repos_list }}"
