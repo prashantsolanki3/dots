@@ -2,7 +2,7 @@
 - name: Configure Ubuntu
   hosts: dev
   vars_files:
-    - ../bootstrap_host_vars.yaml
+    - ../template_host_vars.yaml
   become: true
   vars:
     apt_retries: 15 
