@@ -1,0 +1,123 @@
+---
+- name: Configure Ubuntu
+  hosts: dev
+  vars_files:
+    - ../bootstrap_host_vars.yaml
+  become: true
+  vars:
+    apt_retries: 15 
+    apt_retry_delay: 10
+
+  handlers:
+    - name: Restart sshd
+      service: name=sshd state=restarted
+    - name: reload systemctl
+      command: systemctl daemon-reload
+
+  pre_tasks:
+    - name: Install base system packages
+      package:
+        name: '{{item}}'
+        state: latest
+      loop:
+        - curl
+        - htop
+        - unzip
+        - wget
+        - zip
+        - colordiff
+        - lsb-release
+        - git
+        - python3
+        - python3-pip
+        - glusterfs-client
+      tags: ['base_packages', 'packages']
+      become: true
+      register: result
+      until: result is not failed
+      retries: '{{ apt_retries }}'
+      delay: '{{ apt_retry_delay }}'
+
+    - name: Split glusterfs mounts var
+      when: glusterfs_mounts != None
+      set_fact:
+        glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
+
+    - name: Split glusterfs home mounts var
+      when: glusterfs_home_mounts != None
+      set_fact:
+        glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
+
+    - name:  Mount Home glusterfs volumes
+      when: glusterfs_home_mounts_list is defined
+      include_tasks: tasks/mount_home_glusterfs.yml
+
+    - name:  Mount Other Glusterfs volumes
+      when: glusterfs_mounts_list is defined
+      include_tasks: tasks/mount_glusterfs.yml
+
+    - name: Install Docker
+      include_tasks: tasks/install_docker.yml
+  
+  # roles:
+  #   - role: monolithprojects.github_actions_runner
+    
+  tasks:
+    - name: Split Runner Github Repos
+      when: github_repos != None
+      set_fact:
+        github_repos_list: "{{ github_repos.split(',') }}"
+    
+    - name: Create Docker Github Runner
+      when: github_repos_list is defined
+      include_tasks: tasks/create_docker_github_runner.yml
+
+    - name: Ensure user dot files
+      copy:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '0600'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      # Add user dot files here 
+      loop:
+        - { src: dots/.wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
+        - { src: dots/.gitignore, dest: '/home/{{host_username}}/.gitignore' }
+        - { src: dots/.curlrc, dest: '/home/{{host_username}}/.curlrc' }
+        - { src: dots/.bash_aliases, dest: '/home/{{host_username}}/.bash_aliases' }
+      tags: ['user_dots', 'dots']
+
+    - name: Ensure root dot files
+      copy:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '0600'
+        owner: root
+        group: root
+      # Add root dot files here
+      loop:
+        - { src: dots/.wgetrc, dest: '/root/.wgetrc' }
+        - { src: dots/.curlrc, dest: '/root/.curlrc' }
+      become: true
+      tags: ['dots']
+
+    - name: Ensure default directories in home
+      file:
+        path: '{{item}}'
+        state: directory
+        mode: '0700'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop:
+        - '/home/{{host_username}}/.ssh'
+
+    - name: Ensure user files (from templates)
+      template:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '0600'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop:
+        - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
+   
