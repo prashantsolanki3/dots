@@ -1,0 +1,45 @@
+update_system: true
+# Glusterfs Config
+enable_glusterfs: true
+default_glusterfs_volume_owner: 1000
+default_glusterfs_volume_group: 1000
+glusterfs_volumes:
+  - { 
+      name: 'downloads', 
+      brick_path: '/mnt/store/downloads', 
+      owner: "{{ default_glusterfs_volume_owner }}", 
+      group: "{{ default_glusterfs_volume_group }}" ,
+      config_state: present,
+      start_state: started
+    }
+  - { 
+      name: 'media', 
+      brick_path: '/mnt/store/media', 
+      owner: "{{ default_glusterfs_volume_owner }}", 
+      group: "{{ default_glusterfs_volume_group }}",
+      config_state: present,
+      start_state: started
+    }
+  - { 
+      name: 'infra', 
+      brick_path: '/mnt/store/infra', 
+      owner: "{{ default_glusterfs_volume_owner }}", 
+      group: "{{ default_glusterfs_volume_group }}" 
+    }
+home_glusterfs_volumes:
+  - { 
+      name: 'playground', 
+      brick_path: '/mnt/store/infra/playground', 
+      owner: "{{ default_glusterfs_volume_owner }}", 
+      group: "{{ default_glusterfs_volume_group }}",
+      config_state: present,
+      start_state: started 
+    }
+  - { 
+      name: 'bootstrap', 
+      brick_path: '/mnt/store/infra/bootstrap', 
+      owner: "{{ default_glusterfs_volume_owner }}", 
+      group: "{{ default_glusterfs_volume_group }}",
+      config_state: present,
+      start_state: started
+    }

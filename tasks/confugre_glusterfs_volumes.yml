@@ -1,0 +1,34 @@
+---
+- name: Create bricks directories
+  file:
+    path: "{{ item.brick_path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+  with_items: "{{ volumes }}"
+
+- name: Configure Gluster volumes
+  gluster_volume:
+    state: "{{ gluster.config_state }}"
+    name: "{{ gluster.name }}"
+    brick: "{{ gluster.brick_path }}"
+    cluster: "{{ ansible_default_ipv4.address }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    force: yes
+  become: true
+  run_once: true
+  ignore_errors: true
+  loop: "{{ volumes }}"
+  loop_control:
+    loop_var: gluster
+
+- name: Start Gluster volumes
+  gluster_volume:
+    state: "{{ gluster.start_state }}"
+    name: "{{ gluster.name }}"
+  become: true
+  run_once: true
+  ignore_errors: true
+  loop: "{{ volumes }}"
+  loop_control:
+    loop_var: gluster

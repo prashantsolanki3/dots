@@ -1,0 +1,19 @@
+---
+- name: Update apt cache
+  become: true
+  apt:
+    update_cache: yes
+  register: result
+  until: result is not failed
+  retries: '{{ apt_retries }}'
+  delay: '{{ apt_retry_delay }}'
+
+- name: Upgrade packages
+  become: true
+  apt:
+    upgrade: yes
+    autoremove: yes
+  register: result
+  until: result is not failed
+  retries: '{{ apt_retries }}'
+  delay: '{{ apt_retry_delay }}'
