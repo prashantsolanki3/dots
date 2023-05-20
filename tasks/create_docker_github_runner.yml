@@ -12,9 +12,9 @@
     group: '{{host_username}}'
   with_items: "{{ github_repos_list }}"
 
-- name: Ensure app work directory
+- name: Ensure app state directory
   file:
-    path: "/mnt/env/{{item}}/work"
+    path: "/mnt/env/{{item}}/state"
     state: directory
     mode: '0755'
     owner: '{{host_username}}'
