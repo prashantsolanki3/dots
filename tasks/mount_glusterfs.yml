@@ -1,29 +1,24 @@
 ---
 - name: Ensure glusterfs mount directories
   file:
-    path: "/mnt/{{ mount }}"
+    path: "{{ item.mount_path }}"
     state: directory
     mode: '0755'
-    owner: '{{host_username}}'
-    group: '{{host_username}}'
-  loop: "{{ glusterfs_mounts_list }}"
-  loop_control:
-    loop_var: mount
-  become: true
+    owner: '{{item.owner}}'
+    group: '{{item.group}}'
+  with_items: "{{ mounts }}"
   tags: ['dir-structure', 'glusterfs', 'mounts']
 
 - name: Add GlusterFS volumes to fstab
   lineinfile:
     path: "/etc/fstab"
-    line: "{{ glusterfs_server }}:/{{ mount }} /mnt/{{ mount }} glusterfs defaults,_netdev 0 0"
-    state: present
-  loop: "{{ glusterfs_mounts_list }}"
-  loop_control:
-    loop_var: mount
-  become: true
-  tags: ['dir-structure', 'glusterfs']
+    line: "{{ item.server }}:/{{ item.name }} {{ item.mount_path }} glusterfs defaults,_netdev 0 0"
+    state: "{{ item.config_state }}"
+  with_items: "{{ mounts }}"
+  tags: ['dir-structure', 'glusterfs', 'fstab']
 
 - name: mount all
-  command: mount -a
-  become: true
-  tags: ['dir-structure', 'glusterfs'] 
+  command: mount
+  when: item.mount == true
+  with_items: "{{ mounts }}"
+  tags: ['dir-structure', 'glusterfs', 'mount-all'] 

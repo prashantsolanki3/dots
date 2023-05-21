@@ -1,0 +1,23 @@
+enable_glusterfs: true
+default_glusterfs_volume_owner: 1000
+default_glusterfs_volume_group: 1000
+default_glusterfs_server: "192.168.1.120"
+glusterfs_mounts:
+  - { 
+      name: 'home_playground', 
+      mount_path: '/home', 
+      server: "{{ default_glusterfs_server }}",
+      owner: "{{ default_glusterfs_volume_owner }}", 
+      group: "{{ default_glusterfs_volume_group }}",
+      config_state: present,
+      mount: true  
+    }
+  - { 
+      name: 'apps_playground', 
+      mount_path: '/etc/apps', 
+      server: "{{ default_glusterfs_server }}",
+      owner: "{{ default_glusterfs_volume_owner }}", 
+      group: "{{ default_glusterfs_volume_group }}",
+      config_state: present,
+      mount: true 
+    }

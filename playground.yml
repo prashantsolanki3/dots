@@ -3,6 +3,7 @@
   hosts: dev
   vars_files:
     - ../playground_host_vars.yaml
+    - vars/playground_defaults.yml
   become: true
   vars:
     apt_retries: 15 
@@ -33,22 +34,26 @@
       retries: '{{ apt_retries }}'
       delay: '{{ apt_retry_delay }}'
 
-    - name: Split glusterfs mounts var
-      when: glusterfs_mounts != None
-      set_fact:
-        glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
+    # - name: Split glusterfs mounts var
+    #   when: glusterfs_mounts != None
+    #   set_fact:
+    #     glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
 
-    - name: Split glusterfs home mounts var
-      when: glusterfs_home_mounts != None
-      set_fact:
-        glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
+    # - name: Split glusterfs home mounts var
+    #   when: glusterfs_home_mounts != None
+    #   set_fact:
+    #     glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
 
-    - name:  Mount Home glusterfs volumes
-      when: glusterfs_home_mounts_list is defined
-      include_tasks: tasks/mount_home_glusterfs.yml
+    # - name:  Mount Home glusterfs volumes
+    #   when: glusterfs_home_mounts_list is defined
+    #   include_tasks: tasks/mount_home_glusterfs.yml
 
-    - name:  Mount Other Glusterfs volumes
-      when: glusterfs_mounts_list is defined
+    - name:  Mount Glusterfs volumes
+      when: 
+        - glusterfs_mounts is defined
+        - enable_glusterfs == true
+      vars:
+        mounts: "{{ glusterfs_mounts }}"
       include_tasks: tasks/mount_glusterfs.yml
 
     - name: Install Docker
