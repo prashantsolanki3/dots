@@ -10,7 +10,8 @@ glusterfs_mounts:
       owner: "{{ default_glusterfs_volume_owner }}", 
       group: "{{ default_glusterfs_volume_group }}",
       config_state: present,
-      mount: true  
+      mount: true,
+      home_mount: true
     }
   - { 
       name: 'apps_playground', 
@@ -19,5 +20,6 @@ glusterfs_mounts:
       owner: "{{ default_glusterfs_volume_owner }}", 
       group: "{{ default_glusterfs_volume_group }}",
       config_state: present,
-      mount: true 
+      mount: true,
+      home_mount: false
     }
