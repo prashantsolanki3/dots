@@ -1,8 +1,8 @@
 ---
 - name: Configure Store VM
-  hosts: dev
+  hosts: all
   vars_files:
-    - ../store_host_vars.yaml
+    # - ../store_host_vars.yaml
     - vars/store_defaults.yml
   become: true
   vars:
@@ -39,10 +39,6 @@
       until: result is not failed
       retries: '{{ apt_retries }}'
       delay: '{{ apt_retry_delay }}'
-
-    # - name: Install Glusterfs
-    #   when: enable_glusterfs == true
-    #   include_tasks: tasks/install_glusterfs.yml
   
     - name: Update System
       when: update_system == true
@@ -55,42 +51,19 @@
         state: started
         enabled: yes
 
-    - name:  Mount glusterfs volumes
+    - name: Mount External Network volumes
       when: 
-        - glusterfs_volumes is defined
-        - enable_glusterfs == true
+        - mounts is defined
       vars:
-        volumes: "{{ glusterfs_volumes }}"       
-      include_tasks: tasks/configure_glusterfs_volumes.yml
+        mounts: "{{ mounts }}"
+      include_tasks: tasks/mount_network_volumes.yml
     
-    - name:  Mount Home glusterfs volumes
+    - name: Configure Store volumes
       when: 
-        - home_glusterfs_volumes is defined
-        - enable_glusterfs == true
+        - volumes is defined
       vars:
-        volumes: "{{ home_glusterfs_volumes }}"
-      include_tasks: tasks/configure_glusterfs_volumes.yml
-    
-    - name: Split glusterfs mounts var
-      when: glusterfs_mounts != None
-      set_fact:
-        glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
-
-    - name: Split glusterfs home mounts var
-      when: glusterfs_home_mounts != None
-      set_fact:
-        glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
-
-    - name:  Mount Home glusterfs volumes
-      when: glusterfs_home_mounts_list is defined
-      include_tasks: tasks/mount_home_glusterfs.yml
-
-    - name:  Mount Other Glusterfs volumes
-      when: glusterfs_mounts_list is defined
-      include_tasks: tasks/mount_glusterfs.yml
-
-    # - name: Install Docker
-    #   include_tasks: tasks/install_docker.yml
+        volumes: "{{ volumes }}"       
+      include_tasks: tasks/configure_volumes.yml
   
   tasks:
     - name: Ensure user dot files
@@ -100,7 +73,6 @@
         mode: '0600'
         owner: '{{host_username}}'
         group: '{{host_username}}'
-      # Add user dot files here 
       loop:
         - { src: dots/.wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
         - { src: dots/.gitignore, dest: '/home/{{host_username}}/.gitignore' }
@@ -115,7 +87,6 @@
         mode: '0600'
         owner: root
         group: root
-      # Add root dot files here
       loop:
         - { src: dots/.wgetrc, dest: '/root/.wgetrc' }
         - { src: dots/.curlrc, dest: '/root/.curlrc' }

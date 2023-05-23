@@ -1,0 +1,48 @@
+---
+- name: Ensure mount directories
+  file:
+    path: "{{ item.mount_path }}"
+    state: directory
+    mode: '0755'
+    owner: "{{item.owner | default_volume_owner | default(host_username) }}"
+    group: "{{item.group | default_volume_group | default(host_username) }}"
+  with_items: "{{ mounts }}"
+  tags: ['dir-structure', 'mounts']
+
+- name: Add GlusterFS volumes to fstab
+  lineinfile:
+    path: "/etc/fstab"
+    line: "{{ item.server | default_glusterfs_server }}:/{{ item.name }} {{ item.mount_path }} glusterfs defaults,_netdev 0 0"
+    state: "{{ item.config_state | default('present') }}"
+  when: 
+    - item.type == "glusterfs"
+    - enable_glusterfs == true
+  with_items: "{{ mounts }}"
+  tags: ['glusterfs', 'fstab']
+
+- name: Add CIFS volumes to fstab
+  lineinfile:
+    path: "/etc/fstab"
+    line : "//{{ item.server | default_cifs_server }}/{{ item.name }} {{ item.mount_path }} cifs vers=3.0,credentials={{ item.credentials | default_cifs_credentials | default('/.cifscredentials') }},iocharset=utf8,file_mode={{ item.file_mode | default('0755') }},dir_mode={{ item.dir_mode | default('0755') }},uid={{item.owner}},gid={{item.group}},nofail 0 0"
+    state: "{{ item.config_state | default('present') }}"
+  when: 
+    - item.type == "cifs"
+    -  enable_cifs == true
+  with_items: "{{ mounts }}"
+  tags: ['cifs', 'fstab']
+
+- name: Mount Volumes
+  command: mount {{ item.mount_path }}
+  when: item.mount == true
+  with_items: "{{ mounts }}"
+  tags: ['dir-structure', 'mount'] 
+
+- name: Create Home User directory
+  with_items: "{{ mounts }}"
+  when: item.home_mount == true
+  file:
+    path: "{{ item.mount_path }}/{{ host_username | default('ubuntu') }}"
+    state: directory
+    mode: '0755'
+    owner: '{{ host_username }}'
+    group: '{{ host_username }}'

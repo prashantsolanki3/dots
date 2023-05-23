@@ -1,9 +1,14 @@
+update_system: true
 enable_glusterfs: true
-default_glusterfs_volume_owner: 1000
-default_glusterfs_volume_group: 1000
+enable_cifs: true
+default_volume_owner: 1000
+default_volume_group: 1000
 default_glusterfs_server: "192.168.1.120"
-glusterfs_mounts:
+default_cifs_server: "192.168.1.10"
+default_cifs_credentials: "/.cifscredentials"
+mounts:
   - { 
+      type: 'glusterfs',
       name: 'home_playground', 
       mount_path: '/home', 
       server: "{{ default_glusterfs_server }}",
@@ -14,6 +19,7 @@ glusterfs_mounts:
       home_mount: true
     }
   - { 
+      type: 'glusterfs',
       name: 'apps_playground', 
       mount_path: '/etc/apps', 
       server: "{{ default_glusterfs_server }}",
@@ -22,4 +28,11 @@ glusterfs_mounts:
       config_state: present,
       mount: true,
       home_mount: false
+    }
+  - { 
+      type: 'cifs',
+      name: 'zfs-slow-media', 
+      mount_path: '/mnt/zfs-slow-media', 
+      server: "{{ default_glusterfs_server }}",
+      mount: true
     }

@@ -1,14 +1,26 @@
 update_system: true
-# Glusterfs Config
+# Network Storage Config
 enable_glusterfs: true
-default_glusterfs_volume_owner: 1000
-default_glusterfs_volume_group: 1000
-glusterfs_volumes:
+enable_cifs: true
+default_volume_owner: 1000
+default_volume_group: 1000
+default_glusterfs_server: "192.168.1.120"
+default_cifs_server: "192.168.1.10"
+mounts:
   - { 
+      type: 'cifs',
+      name: 'zfs-slow-media', 
+      mount_path: '/mnt/zfs-slow-media', 
+      server: "{{ default_glusterfs_server }}",
+      mount: true
+    }
+volumes:
+  - { 
+      type: 'glusterfs',
       name: 'downloads', 
-      brick_path: '/mnt/store/downloads', 
-      owner: "{{ default_glusterfs_volume_owner }}", 
-      group: "{{ default_glusterfs_volume_group }}" ,
+      path: '/mnt/store/downloads', 
+      owner: "{{ default_volume_owner }}", 
+      group: "{{ default_volume_group }}" ,
       config_state: present,
       start_state: started
     }
