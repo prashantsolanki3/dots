@@ -4,15 +4,15 @@
     path: "{{ item.mount_path }}"
     state: directory
     mode: '0755'
-    owner: "{{item.owner | default_volume_owner | default(host_username) }}"
-    group: "{{item.group | default_volume_group | default(host_username) }}"
+    owner: "{{ item.owner | default(default_volume_owner) }}"
+    group: "{{ item.group | default(default_volume_group) }}"
   with_items: "{{ mounts }}"
   tags: ['dir-structure', 'mounts']
 
 - name: Add GlusterFS volumes to fstab
   lineinfile:
     path: "/etc/fstab"
-    line: "{{ item.server | default_glusterfs_server }}:/{{ item.name }} {{ item.mount_path }} glusterfs defaults,_netdev 0 0"
+    line: "{{ item.server | default(default_glusterfs_server) }}:/{{ item.name }} {{ item.mount_path }} glusterfs defaults,_netdev 0 0"
     state: "{{ item.config_state | default('present') }}"
   when: 
     - item.type == "glusterfs"
@@ -23,7 +23,7 @@
 - name: Add CIFS volumes to fstab
   lineinfile:
     path: "/etc/fstab"
-    line : "//{{ item.server | default_cifs_server }}/{{ item.name }} {{ item.mount_path }} cifs vers=3.0,credentials={{ item.credentials | default_cifs_credentials | default('/.cifscredentials') }},iocharset=utf8,file_mode={{ item.file_mode | default('0755') }},dir_mode={{ item.dir_mode | default('0755') }},uid={{item.owner}},gid={{item.group}},nofail 0 0"
+    line : "//{{ item.server | default(default_cifs_server) }}/{{ item.name }} {{ item.mount_path }} cifs vers=3.0,credentials={{ item.credentials | default('/.cifscredentials') }},iocharset=utf8,file_mode={{ item.file_mode | default('0755') }},dir_mode={{ item.dir_mode | default('0755') }},uid={{ item.owner | default(default_volume_owner) }},gid={{ item.group | default(default_volume_group) }},nofail 0 0"
     state: "{{ item.config_state | default('present') }}"
   when: 
     - item.type == "cifs"
