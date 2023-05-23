@@ -11,7 +11,7 @@ mounts:
       type: 'cifs',
       name: 'zfs-slow-media', 
       mount_path: '/mnt/zfs-slow-media', 
-      server: "{{ default_glusterfs_server }}",
+      server: "{{ default_cifs_server }}",
       mount: true
     }
 volumes:
