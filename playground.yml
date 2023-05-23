@@ -42,8 +42,6 @@
     - name:  Mount Network volumes
       when: 
         - mounts is defined
-      vars:
-        mounts: "{{ mounts }}"
       include_tasks: tasks/mount_network_volumes.yml
 
     - name: Install Docker
