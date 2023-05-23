@@ -37,6 +37,7 @@
         - python3-pip
         - glusterfs-client
         - glusterfs-server
+        - cifs-utils
       tags: ['base_packages', 'packages']
       become: true
       register: result
