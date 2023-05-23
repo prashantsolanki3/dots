@@ -7,7 +7,7 @@
   become: true
   vars:
     apt_retries: 15 
-    apt_retry_delay: 10
+    apt_retry_delay: 20
 
   handlers:
     - name: Restart sshd
