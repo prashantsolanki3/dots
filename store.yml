@@ -16,6 +16,10 @@
       command: systemctl daemon-reload
 
   pre_tasks:
+    - name: Update System
+      when: update_system == true
+      include_tasks: tasks/update_system.yml
+    
     - name: Install base system packages
       package:
         name: '{{item}}'
@@ -39,10 +43,6 @@
       until: result is not failed
       retries: '{{ apt_retries }}'
       delay: '{{ apt_retry_delay }}'
-  
-    - name: Update System
-      when: update_system == true
-      include_tasks: tasks/update_system.yml
 
     - name: Start and enable GlusterFS server service
       when: enable_glusterfs == true
