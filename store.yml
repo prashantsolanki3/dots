@@ -54,15 +54,11 @@
     - name: Mount External Network volumes
       when: 
         - mounts is defined
-      vars:
-        mounts: "{{ mounts }}"
       include_tasks: tasks/mount_network_volumes.yml
     
     - name: Configure Store volumes
       when: 
-        - volumes is defined
-      vars:
-        volumes: "{{ volumes }}"       
+        - volumes is defined       
       include_tasks: tasks/configure_volumes.yml
   
   tasks:
