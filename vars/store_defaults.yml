@@ -27,48 +27,48 @@ volumes:
   - { 
       name: 'media', 
       brick_path: '/mnt/store/media', 
-      owner: "{{ default_glusterfs_volume_owner }}", 
-      group: "{{ default_glusterfs_volume_group }}",
+      owner: "{{ default_volume_owner }}", 
+      group: "{{ default_volume_group }}",
       config_state: present,
       start_state: started
     }
   # - { 
   #     name: 'infra', 
   #     brick_path: '/mnt/store/infra', 
-  #     owner: "{{ default_glusterfs_volume_owner }}", 
-  #     group: "{{ default_glusterfs_volume_group }}",
+  #     owner: "{{ default_volume_owner }}", 
+  #     group: "{{ default_volume_group }}",
   #     config_state: present,
   #     start_state: started
   #   }
   - { 
       name: 'home_playground', 
       brick_path: '/mnt/store/home/playground', 
-      owner: "{{ default_glusterfs_volume_owner }}", 
-      group: "{{ default_glusterfs_volume_group }}",
+      owner: "{{ default_volume_owner }}", 
+      group: "{{ default_volume_group }}",
       config_state: present,
       start_state: started 
     }
   - { 
       name: 'apps_playground', 
       brick_path: '/mnt/store/apps/playground', 
-      owner: "{{ default_glusterfs_volume_owner }}", 
-      group: "{{ default_glusterfs_volume_group }}",
+      owner: "{{ default_volume_owner }}", 
+      group: "{{ default_volume_group }}",
       config_state: present,
       start_state: started 
     }
   - { 
       name: 'home_media', 
       brick_path: '/mnt/store/home/media', 
-      owner: "{{ default_glusterfs_volume_owner }}", 
-      group: "{{ default_glusterfs_volume_group }}",
+      owner: "{{ default_volume_owner }}", 
+      group: "{{ default_volume_group }}",
       config_state: present,
       start_state: started 
     }
   - { 
       name: 'apps_media', 
       brick_path: '/mnt/store/apps/media', 
-      owner: "{{ default_glusterfs_volume_owner }}", 
-      group: "{{ default_glusterfs_volume_group }}",
+      owner: "{{ default_volume_owner }}", 
+      group: "{{ default_volume_group }}",
       config_state: present,
       start_state: started 
     }
@@ -76,16 +76,16 @@ volumes:
   # - { 
   #     name: 'playground', 
   #     brick_path: '/mnt/store/infra/playground/', 
-  #     owner: "{{ default_glusterfs_volume_owner }}", 
-  #     group: "{{ default_glusterfs_volume_group }}",
+  #     owner: "{{ default_volume_owner }}", 
+  #     group: "{{ default_volume_group }}",
   #     config_state: present,
   #     start_state: started 
   #   }
   # - { 
   #     name: 'bootstrap', 
   #     brick_path: '/mnt/store/infra/bootstrap', 
-  #     owner: "{{ default_glusterfs_volume_owner }}", 
-  #     group: "{{ default_glusterfs_volume_group }}",
+  #     owner: "{{ default_volume_owner }}", 
+  #     group: "{{ default_volume_group }}",
   #     config_state: present,
   #     start_state: started
   #   }
