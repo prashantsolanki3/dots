@@ -41,7 +41,7 @@
   with_items: "{{ mounts }}"
   when: item.home_mount == true
   file:
-    path: "{{ item.mount_path }}/{{ host_username | default('ubuntu') }}"
+    path: "{{ item.path }}/{{ host_username | default('ubuntu') }}"
     state: directory
     mode: '0755'
     owner: '{{ host_username }}'
