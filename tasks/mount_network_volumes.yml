@@ -23,7 +23,7 @@
 - name: Add CIFS volumes to fstab
   lineinfile:
     path: "/etc/fstab"
-    line : "//{{ item.server | default(default_cifs_server) }}/{{ item.name }} {{ item.mount_path }} cifs vers=3.0,credentials={{ item.credentials | default('/home/'~host_username~'/.cifscredentials') }},iocharset=utf8,file_mode={{ item.file_mode | default('0755') }},dir_mode={{ item.dir_mode | default('0755') }},uid={{ item.owner | default(default_volume_owner) }},gid={{ item.group | default(default_volume_group) }},nofail 0 0"
+    line : "//{{ item.server | default(default_cifs_server) }}/{{ item.name }} {{ item.mount_path }} cifs vers=3.0,credentials={{ item.credentials | default('/home/'~host_username~'/.cifscredentials') }},file_mode={{ item.file_mode | default('0755') }},dir_mode={{ item.dir_mode | default('0755') }},uid={{ item.owner | default(default_volume_owner) }},gid={{ item.group | default(default_volume_group) }},nofail 0 0"
     state: "{{ item.config_state | default('present') }}"
   when: 
     - item.type == "cifs"
