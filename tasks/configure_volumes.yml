@@ -24,8 +24,8 @@
 
 - name: Start Gluster volumes
   gluster_volume:
-    state: "{{ gluster.start_state }}"
-    name: "{{ gluster.name }}"
+    state: "{{ item.start_state }}"
+    name: "{{ item.name }}"
   become: true
   run_once: true
   ignore_errors: true
