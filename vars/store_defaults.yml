@@ -25,6 +25,7 @@ volumes:
       start_state: started
     }
   - { 
+      type: 'glusterfs',
       name: 'media', 
       path: '/mnt/store/media', 
       owner: "{{ default_volume_owner }}", 
@@ -41,6 +42,7 @@ volumes:
   #     start_state: started
   #   }
   - { 
+      type: 'glusterfs',
       name: 'home_playground', 
       path: '/mnt/store/home/playground', 
       owner: "{{ default_volume_owner }}", 
@@ -49,6 +51,7 @@ volumes:
       start_state: started 
     }
   - { 
+      type: 'glusterfs',
       name: 'apps_playground', 
       path: '/mnt/store/apps/playground', 
       owner: "{{ default_volume_owner }}", 
@@ -57,6 +60,7 @@ volumes:
       start_state: started 
     }
   - { 
+      type: 'glusterfs',
       name: 'home_media', 
       path: '/mnt/store/home/media', 
       owner: "{{ default_volume_owner }}", 
@@ -65,6 +69,7 @@ volumes:
       start_state: started 
     }
   - { 
+      type: 'glusterfs',
       name: 'apps_media', 
       path: '/mnt/store/apps/media', 
       owner: "{{ default_volume_owner }}", 
