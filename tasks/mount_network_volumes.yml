@@ -39,7 +39,9 @@
 
 - name: Create Home User directory
   with_items: "{{ mounts }}"
-  when: item.home_mount == true
+  when: 
+    - item.home_mount is defined       
+    - item.home_mount == true
   file:
     path: "{{ item.path }}/{{ host_username | default('ubuntu') }}"
     state: directory
