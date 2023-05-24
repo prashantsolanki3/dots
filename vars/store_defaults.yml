@@ -6,11 +6,12 @@ default_volume_owner: 1000
 default_volume_group: 1000
 default_glusterfs_server: "192.168.1.120"
 default_cifs_server: "192.168.1.10"
+store_path: /mnt/zfs-slow-media
 mounts:
   - { 
       type: 'cifs',
       name: 'zfs-slow-media', 
-      mount_path: '/mnt/zfs-slow-media', 
+      mount_path: '{{store_path}}', 
       server: "{{ default_cifs_server }}",
       mount: true
     }
@@ -18,7 +19,7 @@ volumes:
   - { 
       type: 'glusterfs',
       name: 'downloads', 
-      path: '/mnt/store/downloads', 
+      path: '{{store_path}}/store/downloads', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}" ,
       config_state: present,
@@ -27,7 +28,7 @@ volumes:
   - { 
       type: 'glusterfs',
       name: 'media', 
-      path: '/mnt/store/media', 
+      path: '{{store_path}}/store/media', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -44,7 +45,7 @@ volumes:
   - { 
       type: 'glusterfs',
       name: 'home_playground', 
-      path: '/mnt/store/home/playground', 
+      path: '{{store_path}}/store/home/playground', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -53,7 +54,7 @@ volumes:
   - { 
       type: 'glusterfs',
       name: 'apps_playground', 
-      path: '/mnt/store/apps/playground', 
+      path: '{{store_path}}/store/apps/playground', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -62,7 +63,7 @@ volumes:
   - { 
       type: 'glusterfs',
       name: 'home_media', 
-      path: '/mnt/store/home/media', 
+      path: '{{store_path}}/store/home/media', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -71,7 +72,7 @@ volumes:
   - { 
       type: 'glusterfs',
       name: 'apps_media', 
-      path: '/mnt/store/apps/media', 
+      path: '{{store_path}}/store/apps/media', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}",
       config_state: present,
