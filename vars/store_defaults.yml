@@ -6,20 +6,20 @@ default_volume_owner: 1000
 default_volume_group: 1000
 default_glusterfs_server: "192.168.1.120"
 default_cifs_server: "192.168.1.10"
-store_path: /mnt/zfs-slow-media
+store_path: /mnt/store
+
 mounts:
   - { 
-      type: 'cifs',
-      name: 'zfs-slow-media', 
+      type: 'glusterfs',
+      name: '{{env}}_store', 
       mount_path: '{{store_path}}', 
-      server: "{{ default_cifs_server }}",
       mount: true
     }
 volumes:
   - { 
       type: 'glusterfs',
       name: 'downloads', 
-      path: '{{store_path}}/store/downloads', 
+      path: '{{store_path}}/downloads', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}" ,
       config_state: present,
@@ -28,7 +28,7 @@ volumes:
   - { 
       type: 'glusterfs',
       name: 'media', 
-      path: '{{store_path}}/store/media', 
+      path: '{{store_path}}/media', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -45,7 +45,7 @@ volumes:
   - { 
       type: 'glusterfs',
       name: 'home_playground', 
-      path: '{{store_path}}/store/home/playground', 
+      path: '{{store_path}}/home/playground', 
       owner: "{{ default_volume_owner }}", 
       group: "{{ default_volume_group }}",
       config_state: present,
