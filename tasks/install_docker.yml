@@ -13,22 +13,45 @@
   delay: '{{ apt_retry_delay }}'
   become: true
 
-- name: Add Docker GPG key
+- name: Add Ubuntu Docker GPG key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
   become: true
+  when: ansible_os_family == 'Ubuntu' 
 
-- name: Add Docker APT repository
+- name: Add Ubuntu Docker APT repository
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
     state: present
   become: true
+  when: ansible_os_family == 'Ubuntu' 
+
+
+- name: Add Debian Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+  become: true
+  when: ansible_os_family == 'Debian' 
+
+- name: Add Debian Docker APT repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable
+    state: present
+  become: true
+  when: ansible_os_family == 'Debian' 
 
 - name: Install Docker
   apt:
-    name: docker-ce
+    name: '{{item}}'
     state: present
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io 
+    - docker-buildx-plugin 
+    - docker-compose-plugin
   register: result
   until: result is not failed
   retries: '{{ apt_retries }}'
