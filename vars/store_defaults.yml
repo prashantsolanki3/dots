@@ -13,7 +13,9 @@ mounts:
       type: 'glusterfs',
       name: '{{env}}_store', 
       mount_path: '{{store_path}}', 
-      mount: true
+      mount: true,
+      owner: "root",
+      group: "root"
     }
 volumes:
   - { 
