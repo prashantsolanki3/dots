@@ -35,6 +35,7 @@
   command: mount {{ item.mount_path }}
   when: item.mount == true
   run_once: true
+  ignore_errors: true
   with_items: "{{ mounts }}"
   tags: ['dir-structure', 'mount'] 
 
