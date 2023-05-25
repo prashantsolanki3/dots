@@ -14,7 +14,7 @@
   become: true
 
 - debug:
-    var: ansible_os_family
+    var: ansible_distribution
 
 
 - name: Add Ubuntu Docker GPG key
@@ -22,14 +22,14 @@
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
   become: true
-  when: ansible_os_family == 'Ubuntu' 
+  when: ansible_distribution == 'Ubuntu' 
 
 - name: Add Ubuntu Docker APT repository
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
     state: present
   become: true
-  when: ansible_os_family == 'Ubuntu' 
+  when: ansible_distribution == 'Ubuntu' 
 
 
 - name: Add Debian Docker GPG key
@@ -37,14 +37,14 @@
     url: https://download.docker.com/linux/debian/gpg
     state: present
   become: true
-  when: ansible_os_family == 'Debian' 
+  when: ansible_distribution == 'Debian' 
 
 - name: Add Debian Docker APT repository
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable
     state: present
   become: true
-  when: ansible_os_family == 'Debian' 
+  when: ansible_distribution == 'Debian' 
 
 - name: Install Docker
   apt:
