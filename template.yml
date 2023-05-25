@@ -7,7 +7,7 @@
   vars:
     apt_retries: 15 
     apt_retry_delay: 10
-
+  gather_facts: true
   handlers:
     - name: Restart sshd
       service: name=sshd state=restarted
