@@ -61,3 +61,13 @@ runner_name: "{{ ansible_hostname }}"
 # https_proxy=YOUR_URL_HERE
 # no_proxy=localhost,127.0.0.1,127.0.0.2
 # HTTP_PROXY=
+
+github_repos: vm-template,vm-playground,vm-media,vm-store
+github_account: prashantsolanki3
+mounts:
+  - { 
+      type: 'glusterfs',
+      name: 'old_env', 
+      mount_path: '/mnt/env', 
+      mount: true
+    }

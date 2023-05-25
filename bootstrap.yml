@@ -16,6 +16,10 @@
       command: systemctl daemon-reload
 
   pre_tasks:
+    - name: Update System
+      when: update_system == true
+      include_tasks: tasks/update_system.yml
+    
     - name: Install base system packages
       package:
         name: '{{item}}'
@@ -39,23 +43,29 @@
       retries: '{{ apt_retries }}'
       delay: '{{ apt_retry_delay }}'
 
-    - name: Split glusterfs mounts var
-      when: glusterfs_mounts != None
-      set_fact:
-        glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
+    # - name: Split glusterfs mounts var
+    #   when: glusterfs_mounts != None
+    #   set_fact:
+    #     glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
 
-    - name: Split glusterfs home mounts var
-      when: glusterfs_home_mounts != None
-      set_fact:
-        glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
+    # - name: Split glusterfs home mounts var
+    #   when: glusterfs_home_mounts != None
+    #   set_fact:
+    #     glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
 
-    - name:  Mount Home glusterfs volumes
-      when: glusterfs_home_mounts_list is defined
-      include_tasks: tasks/mount_home_glusterfs.yml
+    # - name:  Mount Home glusterfs volumes
+    #   when: glusterfs_home_mounts_list is defined
+    #   include_tasks: tasks/mount_home_glusterfs.yml
 
-    - name:  Mount Other Glusterfs volumes
-      when: glusterfs_mounts_list is defined
-      include_tasks: tasks/mount_glusterfs.yml
+    # - name:  Mount Other Glusterfs volumes
+    #   when: glusterfs_mounts_list is defined
+    #   include_tasks: tasks/mount_glusterfs.yml
+
+    - name: Mount External Network volumes
+      when: 
+        - mounts is defined
+      include_tasks: tasks/mount_network_volumes.yml
+
     - name: Install Docker
       include_tasks: tasks/install_docker.yml
   
@@ -63,13 +73,6 @@
   #   - role: monolithprojects.github_actions_runner
     
   tasks:
-    - name: Split Runner Github Repos
-      when: github_repos != None
-      set_fact:
-        github_repos_list: "{{ github_repos.split(',') }}"
-    - name: Create Docker Github Runner
-      include_tasks: tasks/create_docker_github_runner.yml
-
     - name: Ensure user dot files
       copy:
         src: '{{item.src}}'
@@ -118,4 +121,9 @@
         group: '{{host_username}}'
       loop:
         - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
-   
+
+    - name: Create Docker Github Runner
+      when: github_repos != None
+      include_tasks: tasks/create_docker_github_runner.yml
+      vars:
+        github_repos_list: "{{ github_repos.split(',') }}"
