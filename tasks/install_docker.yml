@@ -14,7 +14,7 @@
   become: true
 
 - debug:
-    var: var=ansible_os_family
+    var: ansible_os_family
 
 
 - name: Add Ubuntu Docker GPG key
