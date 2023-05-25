@@ -2,7 +2,7 @@
 - name: Configure Ubuntu
   hosts: dev
   vars_files:
-    - ../bootstrap_host_vars.yaml
+    # - ../bootstrap_host_vars.yaml
     - vars/bootstrap_defaults.yml
   become: true
   vars:
