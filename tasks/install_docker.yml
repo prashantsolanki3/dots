@@ -13,6 +13,11 @@
   delay: '{{ apt_retry_delay }}'
   become: true
 
+- debug:
+    var: 
+    - ansible_distribution_release
+    - ansible_os_family
+
 - name: Add Ubuntu Docker GPG key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
