@@ -63,7 +63,7 @@ runner_name: "{{ ansible_hostname }}"
 # HTTP_PROXY=
 
 update_system: true
-github_repos: vm-template,vm-playground,vm-media,vm-store, dots
+github_repos: vm-template,vm-playground,vm-media,vm-store,dots
 github_account: prashantsolanki3
 default_volume_owner: 1000
 default_volume_group: 1000
