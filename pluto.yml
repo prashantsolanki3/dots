@@ -1,0 +1,60 @@
+---
+- name: Configure AWS Pluto Instance
+  hosts: all
+  vars_files:
+    - vars/pluto_defaults.yml
+  become: true
+  gather_facts: true
+  vars:
+    apt_retries: 15
+    apt_retry_delay: 10
+
+  handlers:
+    - name: Restart sshd
+      service: name=sshd state=restarted
+    - name: reload systemctl
+      command: systemctl daemon-reload
+
+  pre_tasks:
+    - name: Update System
+      when: update_system == true
+      include_tasks: tasks/update_system.yml
+
+    - name: Install base system packages
+      package:
+        name: "{{item}}"
+        state: latest
+      loop:
+        - curl
+        - htop
+        - unzip
+        - wget
+        - zip
+        - colordiff
+        - lsb-release
+        - git
+      tags: ["base_packages", "packages"]
+      become: true
+      register: result
+      until: result is not failed
+      retries: "{{ apt_retries }}"
+      delay: "{{ apt_retry_delay }}"
+
+  tasks:
+    - name: Ensure user dot files
+      copy:
+        src: "{{item.src}}"
+        dest: "{{item.dest}}"
+        mode: "0600"
+        owner: "{{host_username}}"
+        group: "{{host_username}}"
+      # Add user dot files here
+      loop:
+        - { src: dots/.wgetrc, dest: "/home/{{host_username}}/.wgetrc" }
+        - { src: dots/.gitignore, dest: "/home/{{host_username}}/.gitignore" }
+        - { src: dots/.curlrc, dest: "/home/{{host_username}}/.curlrc" }
+        - {
+            src: dots/.bash_aliases,
+            dest: "/home/{{host_username}}/.bash_aliases",
+          }
+      tags: ["user_dots", "dots"]
