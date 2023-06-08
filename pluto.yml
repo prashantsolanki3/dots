@@ -33,6 +33,8 @@
         - colordiff
         - lsb-release
         - git
+        - fuse
+        - s3fs
       tags: ["base_packages", "packages"]
       become: true
       register: result
@@ -61,3 +63,28 @@
 
     - name: Configure Git
       include_tasks: tasks/configure_git.yml
+
+    - name: Ensure default directories in home
+      file:
+        path: '{{item}}'
+        state: directory
+        mode: '0700'
+      loop:
+        - ${HOME}/.aws
+      become: true
+      tags: ['dir-structure']
+
+    - name: Ensure template files
+      template:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '{{item.mode}}'
+        owner: '{{host_username}}'
+        group: '{{host_username}}'
+      loop:
+        - { src: aws/credentials, dest: '${HOME}/.aws/credentials', mode: '0600' }
+
+    - name: Mount External Network volumes
+      when: 
+        - mounts is defined
+      include_tasks: tasks/mount_network_volumes.yml

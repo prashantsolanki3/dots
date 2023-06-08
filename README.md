@@ -43,11 +43,11 @@ Clone and Setup Development VM Terraform Repo. Follow the instructions to run th
 
 * Run Ansible in check mode
 
-    ```ansible-playbook -i hosts dev.yml -K -C```
+    ```ansible-playbook -i hosts --extra-vars "@env.yml" pluto.yml -C```
 
 * Run Ansible against the hosts defined in the `hosts` file.
 
-    ```ansible-playbook -i hosts dev.yml -K```
+    ```ansible-playbook -i hosts --extra-vars "@env.yml" pluto.yml```
 
     Note: Root privileges required to install system packages and other configuration. Ansible will ask you for your password to become root user. This is required because Ansible automates package installation, changes settings only accessible to root etc.
 
