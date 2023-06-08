@@ -1,6 +1,6 @@
 [all:vars]
 ansible_connection=ssh
-ansible_user=<ssh-user>
+ansible_user=ubuntu
 
 [dev]
-<ip-of-vm>
+localhost ansible_connection=local

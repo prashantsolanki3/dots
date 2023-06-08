@@ -58,3 +58,6 @@
             dest: "/home/{{host_username}}/.bash_aliases",
           }
       tags: ["user_dots", "dots"]
+
+    - name: Configure Git
+      include_tasks: tasks/configure_git.yml

@@ -6,6 +6,8 @@ default_volume_group: 1000
 default_glusterfs_server: "192.168.1.120"
 default_cifs_server: "192.168.1.10"
 default_cifs_credentials: "/.cifscredentials"
+git_user_name: "Prashant Solanki"
+git_email: "solankisrp2@gmail.com"
 mounts:
   - { 
       type: 'glusterfs',

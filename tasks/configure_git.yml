@@ -6,8 +6,8 @@
 - name: Configure Git Name
   git_config:
     name: user.name
-    value: "Prashant Solanki"
+    value: "{{ git_user_name }}"
 - name: Configure Git Email
   git_config:
     name: user.email
-    value: "solankisrp2@gmail.com"
+    value: "{{ git_email }}"

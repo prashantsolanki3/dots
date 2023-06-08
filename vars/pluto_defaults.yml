@@ -1,1 +1,4 @@
 update_system: true
+host_username: ubuntu
+git_user_name: "Prashant Solanki"
+git_email: "solankisrp2@gmail.com"
