@@ -3,7 +3,7 @@
   file:
     path: "{{ item.mount_path }}"
     state: directory
-    mode: '0755'
+    mode: '{{ item.dir_mode | default("0755") }}'
     owner: "{{ item.owner | default(default_volume_owner) }}"
     group: "{{ item.group | default(default_volume_group) }}"
   with_items: "{{ mounts }}"
