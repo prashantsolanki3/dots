@@ -1,14 +1,16 @@
 # Runner user - user under which is the local runner service running
 runner_user: "{{ host_username }}"
 
-update_system: true
+update_system: false
 github_repos: vm-template,vm-playground,vm-media,vm-store,dots
 github_account: prashantsolanki3
 default_volume_owner: 1000
 default_volume_group: 1000
-enable_glusterfs: true
-enable_cifs: false
-default_glusterfs_server: "192.168.1.10"
-default_cifs_server: "192.168.1.10"
-mounts:
-  - { type: "glusterfs", name: "old_env", mount_path: "/mnt/env", mount: true }
+default_aws_region: ap-southeast-2
+mounts: 
+  - { 
+      type: 's3fs',
+      name: '{{s3_env_bucket}}', 
+      mount_path: '{{s3_env_mount}}', 
+      mount: true
+    }
