@@ -21,28 +21,18 @@
       when: update_system == true
       include_tasks: tasks/update_system.yml
     
-    # - name: Install base system packages
-    #   package:
-    #     name: '{{item}}'
-    #     state: latest
-    #   loop:
-    #     - curl
-    #     - htop
-    #     - unzip
-    #     - wget
-    #     - zip
-    #     - colordiff
-    #     - lsb-release
-    #     - git
-    #     - python3
-    #     - python3-pip
-    #     - glusterfs-client
-    #   tags: ['base_packages', 'packages']
-    #   become: true
-    #   register: result
-    #   until: result is not failed
-    #   retries: '{{ apt_retries }}'
-    #   delay: '{{ apt_retry_delay }}'
+    - name: Install base system packages
+      package:
+        name: '{{item}}'
+        state: latest
+      loop:
+        - s3fs
+      tags: ['base_packages', 'packages']
+      become: true
+      register: result
+      until: result is not failed
+      retries: '{{ apt_retries }}'
+      delay: '{{ apt_retry_delay }}'
 
     # - name: Split glusterfs mounts var
     #   when: glusterfs_mounts != None
