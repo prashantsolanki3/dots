@@ -1,31 +1,37 @@
 ---
 - name: Create environment file
-  template: src=github-actions/ephemeral-github-actions-runner.env.j2 dest=/etc/{{item}}-github-actions-runner.env mode=600
-  with_items: "{{ github_repos_list }}"
+  template: src=github-actions/ephemeral-github-actions-runner.env.j2 dest=/etc/{{item.name}}-github-actions-runner.env mode=600
+  with_items: "{{ github_runner_repos }}"
 
 - name: Ensure app env directory
   file:
-    path: "/mnt/env/{{item}}"
+    path: "/mnt/env/{{item.name}}"
     state: directory
-    mode: '0755'
-    owner: '{{host_username}}'
-    group: '{{host_username}}'
-  with_items: "{{ github_repos_list }}"
+    mode: '0600'
+    owner: '{{default_volume_owner}}'
+    group: '{{default_volume_owner}}'
+  with_items: "{{ github_runner_repos }}"
 
 - name: Ensure app state directory
   file:
-    path: "/mnt/env/{{item}}/state"
+    path: "/mnt/env/{{item.name}}/state"
     state: directory
-    mode: '0755'
-    owner: '{{host_username}}'
-    group: '{{host_username}}'
-  with_items: "{{ github_repos_list }}"
+    mode: '0600'
+    owner: '{{default_volume_owner}}'
+    group: '{{default_volume_owner}}'
+  with_items: "{{ github_runner_repos }}"
 
 - name: Create Unit file
-  template: src=github-actions/ephemeral-github-actions-runner.service.j2 dest=/etc/systemd/system/{{item}}-github-actions-runner.service mode=644
-  with_items: "{{ github_repos_list }}"
+  template: 
+    src: github-actions/ephemeral-github-actions-runner.service.j2 
+    dest: /etc/systemd/system/{{item.name}}-github-actions-runner.service 
+    mode: 644
+  with_items: "{{ github_runner_repos }}"
   notify:
     - reload systemctl
 - name: Start Github runner
-  service: name={{ item }}-github-actions-runner.service state=started enabled=yes
-  with_items: "{{ github_repos_list }}"
+  service: 
+    name: "{{item.name}}-github-actions-runner.service"
+    state: started
+    enabled: yes
+  with_items: "{{ github_runner_repos }}"
