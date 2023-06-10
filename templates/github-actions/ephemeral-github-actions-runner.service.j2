@@ -15,13 +15,20 @@ Requires=docker.service
 [Service]
 TimeoutStartSec=0
 Restart=always
-ExecStartPre=-/usr/bin/docker stop %N-{{item}}
-ExecStartPre=-/usr/bin/docker rm %N-{{item}}
+ExecStartPre=-/usr/bin/docker stop %N
+ExecStartPre=-/usr/bin/docker rm %N
 ExecStartPre=-/usr/bin/docker pull myoung34/github-runner:latest
 ExecStart=/usr/bin/docker run --rm \
-                              --env-file /etc/{{item}}-github-actions-runner.env \
+                              --env-file /etc/{{item.name}}-github-actions-runner.env \
                               -v /var/run/docker.sock:/var/run/docker.sock \
-                              -v /mnt/env/{{item}}:/mnt/env/{{item}} \
+                              {% if item.share_ssh_as_volume == true %}
+                              -v /root/.ssh/id_rsa:/root/.ssh/id_rsa:ro \
+                              -v /root/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro \
+                              {% endif %}
+                              -v {{github_env_path}}/{{item.name}}:/mnt/env/{{item.name}} \
+                              {% for volume in item.volumes %}
+                                -v {{volume}} \
+                              {% endfor %}
                               --name %N \
                               myoung34/github-runner:latest
 [Install]
