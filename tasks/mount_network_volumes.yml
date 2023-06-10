@@ -16,7 +16,6 @@
     state: "{{ item.config_state | default('present') }}"
   when: 
     - item.type == "glusterfs"
-    - enable_glusterfs == true
   with_items: "{{ mounts }}"
   tags: ['glusterfs', 'fstab']
 
@@ -27,7 +26,6 @@
     state: "{{ item.config_state | default('present') }}"
   when: 
     - item.type == "cifs"
-    - enable_cifs == true
   with_items: "{{ mounts }}"
   tags: ['cifs', 'fstab']
 
@@ -38,7 +36,6 @@
     state: "{{ item.config_state | default('present') }}"
   when: 
     - item.type == "s3fs"
-    - enable_s3fs == true
   with_items: "{{ mounts }}"
   tags: ['s3fs', 'fstab']
 

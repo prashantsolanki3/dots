@@ -2,7 +2,6 @@ update_system: true
 host_username: ubuntu
 git_user_name: "Prashant Solanki"
 git_email: "solankisrp2@gmail.com"
-enable_s3fs: true
 default_volume_owner: 1000
 default_volume_group: 1000
 default_aws_region: ap-southeast-2
