@@ -50,7 +50,10 @@
 
     - name: Install Docker
       include_tasks: tasks/install_docker.yml
-    
+    - name: Ensure ssh directory exists
+      file:
+        path: ${HOME}/.ssh
+        state: directory
     - name: Ensure user files
       copy:
         src: '{{item.src}}'
