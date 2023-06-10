@@ -51,6 +51,18 @@
     - name: Install Docker
       include_tasks: tasks/install_docker.yml
     
+    - name: Ensure user files
+      copy:
+        src: '{{item.src}}'
+        dest: '{{item.dest}}'
+        mode: '0600'
+        owner: '{{ansible_user}}'
+        group: '{{ansible_user}}'
+      # Add user dot files here 
+      loop:
+        - { src: '/root/.ssh/id_rsa', dest: '${HOME}/.ssh/id_rsa' }
+        - { src: '/root/.ssh/id_rsa.pub', dest: '${HOME}/.ssh/id_rsa.pub' }
+    
   tasks:
     - name: Create Docker Github Runner
       when: github_repos != None
