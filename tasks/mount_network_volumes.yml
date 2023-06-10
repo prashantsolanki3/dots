@@ -1,5 +1,12 @@
 ---
 - name: Ensure mount directories
+  stat:
+    path: "{{ item.mount_path }}"
+  register: mount_dir_stat
+  with_items: "{{ mounts }}"
+  tags: ['dir-structure', 'mounts']
+
+- name: Create mount directories
   file:
     path: "{{ item.mount_path }}"
     state: directory
@@ -7,6 +14,9 @@
     owner: "{{ item.owner | default(default_volume_owner) }}"
     group: "{{ item.group | default(default_volume_group) }}"
   with_items: "{{ mounts }}"
+  loop_control:
+    index_var: item_idx
+  when: not mount_dir_stat.results[item_idx].stat.exists
   tags: ['dir-structure', 'mounts']
 
 - name: Add GlusterFS volumes to fstab
@@ -45,16 +55,16 @@
   run_once: true
   ignore_errors: true
   with_items: "{{ mounts }}"
-  tags: ['dir-structure', 'mount'] 
+  tags: ['dir-structure', 'mount']
 
-- name: Create Home User directory
-  with_items: "{{ mounts }}"
-  when: 
-    - item.home_mount is defined       
-    - item.home_mount == true
-  file:
-    path: "{{ item.path }}/{{ host_username | default('ubuntu') }}"
-    state: directory
-    mode: '0755'
-    owner: '{{ host_username }}'
-    group: '{{ host_username }}'
+# - name: Create Home User directory
+#   with_items: "{{ mounts }}"
+#   when: 
+#     - item.home_mount is defined       
+#     - item.home_mount == true
+#   file:
+#     path: "{{ item.mount_path }}/{{ ansible_user | default('ubuntu') }}"
+#     state: directory
+#     mode: '0755'
+#     owner: '{{ ansible_user }}'
+#     group: '{{ ansible_user }}'
