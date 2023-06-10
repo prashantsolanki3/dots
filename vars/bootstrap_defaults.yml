@@ -48,7 +48,7 @@ github_runner_repos:
       name: "lxc-media",
       runner_labels: ["lxc-media"],
       volumes: [],
-      share_ssh_as_volume: false
+      share_ssh_as_volume: true
     }
 
 ######################
