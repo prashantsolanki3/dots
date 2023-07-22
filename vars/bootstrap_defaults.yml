@@ -44,12 +44,12 @@ github_runner_repos:
       volumes: [],
       share_ssh_as_volume: true
     }
-  - {
-      name: "lxc-media",
-      runner_labels: ["lxc-media"],
-      volumes: [],
-      share_ssh_as_volume: true
-    }
+  # - {
+  #     name: "lxc-media",
+  #     runner_labels: ["lxc-media"],
+  #     volumes: [],
+  #     share_ssh_as_volume: true
+  #   }
 
 ######################
 # End Github Config
