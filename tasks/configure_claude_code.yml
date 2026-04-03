@@ -1,11 +1,36 @@
 ---
 # Configure Claude Code CLI by symlinking config files from the dotfiles repo.
-# Uses dotfiles_dir variable — set this to the absolute path of your dots repo.
-# Example: ansible-playbook mac.yml -e "dotfiles_dir=$HOME/Playground/dots"
+#
+# Variables:
+#   dotfiles_dir   — absolute path to your dots repo (required)
+#   claude_provider — provider profile to activate (default: anthropic)
+#                     valid values: anthropic | bedrock | vertex | openai-compat | foundry
+#
+# Example:
+#   ansible-playbook mac.yml \
+#     -e "dotfiles_dir=$HOME/Playground/dots" \
+#     -e "claude_provider=bedrock"
 #
 # Supported platforms:
 #   Darwin  — macOS (Apple Silicon and Intel)
 #   Debian  — Ubuntu, WSL2 Debian-based distros
+
+- name: Set provider default
+  ansible.builtin.set_fact:
+    claude_provider: "{{ claude_provider | default('anthropic') }}"
+
+- name: Verify provider profile exists in dotfiles repo
+  ansible.builtin.stat:
+    path: "{{ dotfiles_dir }}/files/claude-code/models/{{ claude_provider }}.env"
+  register: provider_profile
+
+- name: Fail if provider profile not found
+  ansible.builtin.fail:
+    msg: >
+      No provider profile found at
+      {{ dotfiles_dir }}/files/claude-code/models/{{ claude_provider }}.env.
+      Valid providers: anthropic, bedrock, vertex, openai-compat, foundry.
+  when: not provider_profile.stat.exists
 
 # ── macOS: verify claude is reachable via Homebrew ───────────────────────────
 - name: "[macOS] Check that claude CLI binary exists via Homebrew"
@@ -61,6 +86,13 @@
     state: link
     force: yes
 
+- name: "Symlink active provider profile ({{ claude_provider }})"
+  ansible.builtin.file:
+    src: "{{ dotfiles_dir }}/files/claude-code/models/{{ claude_provider }}.env"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/active-provider.env"
+    state: link
+    force: yes
+
 - name: Find agent files in dotfiles repo
   ansible.builtin.find:
     paths: "{{ dotfiles_dir }}/files/claude-code/agents"
@@ -74,3 +106,10 @@
     state: link
     force: yes
   loop: "{{ agent_files.files }}"
+
+- name: Print shell activation reminder
+  ansible.builtin.debug:
+    msg: >
+      Provider '{{ claude_provider }}' activated.
+      Add this to ~/.zshrc or ~/.bashrc if not already present:
+        [ -f ~/.claude/active-provider.env ] && source ~/.claude/active-provider.env
