@@ -1,0 +1,76 @@
+---
+# Configure Claude Code CLI by symlinking config files from the dotfiles repo.
+# Uses dotfiles_dir variable — set this to the absolute path of your dots repo.
+# Example: ansible-playbook mac.yml -e "dotfiles_dir=$HOME/Playground/dots"
+#
+# Supported platforms:
+#   Darwin  — macOS (Apple Silicon and Intel)
+#   Debian  — Ubuntu, WSL2 Debian-based distros
+
+# ── macOS: verify claude is reachable via Homebrew ───────────────────────────
+- name: "[macOS] Check that claude CLI binary exists via Homebrew"
+  ansible.builtin.stat:
+    path: "{{ homebrew_prefix | default('/opt/homebrew' if ansible_facts['architecture'] == 'arm64' else '/usr/local') }}/bin/claude"
+  register: claude_bin_mac
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: "[macOS] Warn if claude binary not found (install via: brew install claude)"
+  ansible.builtin.debug:
+    msg: >
+      claude binary not found at expected Homebrew path.
+      Install with: brew install claude
+  when:
+    - ansible_facts['os_family'] == "Darwin"
+    - not claude_bin_mac.stat.exists
+
+# ── Linux / WSL2: verify claude is reachable via PATH ────────────────────────
+- name: "[Linux] Check that claude CLI binary is on PATH"
+  ansible.builtin.command: which claude
+  register: claude_bin_linux
+  changed_when: false
+  failed_when: false
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "[Linux] Warn if claude binary not found (install via npm or direct download)"
+  ansible.builtin.debug:
+    msg: >
+      claude binary not found on PATH.
+      Install with: npm install -g @anthropic-ai/claude-code
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - claude_bin_linux.rc != 0
+
+# ── Shared: create config directory and symlinks (same on all platforms) ──────
+- name: Ensure ~/.claude/agents directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env']['HOME'] }}/.claude/agents"
+    state: directory
+    mode: '0755'
+
+- name: Symlink Claude Code settings.json
+  ansible.builtin.file:
+    src: "{{ dotfiles_dir }}/files/claude-code/settings.json"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
+    state: link
+    force: yes
+
+- name: Symlink Claude Code CLAUDE.md
+  ansible.builtin.file:
+    src: "{{ dotfiles_dir }}/files/claude-code/CLAUDE.md"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/CLAUDE.md"
+    state: link
+    force: yes
+
+- name: Find agent files in dotfiles repo
+  ansible.builtin.find:
+    paths: "{{ dotfiles_dir }}/files/claude-code/agents"
+    patterns: "*.md"
+  register: agent_files
+
+- name: Symlink each agent file into ~/.claude/agents/
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/agents/{{ item.path | basename }}"
+    state: link
+    force: yes
+  loop: "{{ agent_files.files }}"
