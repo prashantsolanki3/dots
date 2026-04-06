@@ -12,7 +12,7 @@
 
 - name: Set provider default
   ansible.builtin.set_fact:
-    claude_provider: "{{ claude_provider | default('anthropic') }}"
+    claude_provider: "{{ claude_provider | default('anthropic', true) }}"
 
 - name: Verify provider profile exists
   ansible.builtin.stat:
