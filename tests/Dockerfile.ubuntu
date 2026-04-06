@@ -1,0 +1,21 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Keep apt lists so ansible --check mode can resolve packages without re-running apt-get update
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      python3 python3-pip python3-apt \
+      openssh-server && \
+    pip3 install ansible-core
+
+# SSH config — root login via key only, no password auth
+RUN mkdir -p /run/sshd && \
+    sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+
+COPY entrypoint.sh /entrypoint.sh
+
+WORKDIR /dots
+ENTRYPOINT ["/entrypoint.sh"]
