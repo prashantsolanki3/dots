@@ -97,13 +97,20 @@ done
 [ "$AGENT_COUNT" -eq 0 ] && echo "  (no agent files to install)"
 
 # ── Shell activation instructions ────────────────────────────────────────────
+SHELL_NAME="$(basename "${SHELL:-}")"
+case "$SHELL_NAME" in
+  zsh)  RC_FILE="~/.zshrc";  RELOAD_HINT="source ~/.zshrc" ;;
+  bash) RC_FILE="~/.bashrc"; RELOAD_HINT="source ~/.bashrc" ;;
+  *)    RC_FILE="your shell rc file"; RELOAD_HINT="restart your shell or source the relevant rc file" ;;
+esac
+
 echo ""
-echo "Done. Add this line to your ~/.zshrc or ~/.bashrc so the provider"
+echo "Done. Add this line to $RC_FILE so the provider"
 echo "profile is sourced whenever you open a terminal:"
 echo ""
 echo '  [ -f ~/.claude/active-provider.env ] && source ~/.claude/active-provider.env'
 echo ""
-echo "Then reload your shell:  source ~/.zshrc"
+echo "Then reload:  $RELOAD_HINT"
 echo ""
 echo "Verify:"
 echo "  ls -la $CLAUDE_DIR/settings.json $CLAUDE_DIR/CLAUDE.md $CLAUDE_DIR/active-provider.env"

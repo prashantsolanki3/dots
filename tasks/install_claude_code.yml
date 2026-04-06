@@ -1,14 +1,18 @@
 ---
 # Install the Claude Code CLI.
 #
-# macOS  — no-op. Install claude via the desktop app or a future brew formula.
-# Linux  — installs Node 20 LTS via NodeSource, then claude via npm globally.
-#           Requires become (sudo) on non-root users.
+# macOS        — no-op. Install claude via the desktop app or a future brew formula.
+# Debian/Ubuntu — installs Node 20 LTS via NodeSource, then claude via npm globally.
+#                 Requires become (sudo) on non-root users.
+#
+# Note: NodeSource setup uses a downloaded shell script (curl | bash). This is the
+# officially supported NodeSource install method and is idempotent via `creates:`.
+# Review https://github.com/nodesource/distributions before use in sensitive environments.
 #
 # No variables required.
 
-# ── Linux: install Node 20 + claude ──────────────────────────────────────────
-- name: "[Linux] Install curl and ca-certificates"
+# ── Debian/Ubuntu: install Node 20 + claude ──────────────────────────────────
+- name: "[Debian] Install curl and ca-certificates"
   ansible.builtin.apt:
     name:
       - curl
@@ -18,14 +22,14 @@
   become: yes
   when: ansible_facts['os_family'] == "Debian"
 
-- name: "[Linux] Add NodeSource Node 20 repo"
+- name: "[Debian] Add NodeSource Node 20 repo"
   ansible.builtin.shell:
     cmd: curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     creates: /etc/apt/sources.list.d/nodesource.list
   become: yes
   when: ansible_facts['os_family'] == "Debian"
 
-- name: "[Linux] Install Node.js 20"
+- name: "[Debian] Install Node.js 20"
   ansible.builtin.apt:
     name: nodejs
     state: present
@@ -33,14 +37,14 @@
   become: yes
   when: ansible_facts['os_family'] == "Debian"
 
-- name: "[Linux] Check if claude is already installed"
+- name: "[Debian] Check if claude is already installed"
   ansible.builtin.command: which claude
   register: claude_installed
   failed_when: false
   changed_when: false
   when: ansible_facts['os_family'] == "Debian"
 
-- name: "[Linux] Install claude via npm"
+- name: "[Debian] Install claude via npm"
   ansible.builtin.command: npm install -g @anthropic-ai/claude-code
   become: yes
   when:
