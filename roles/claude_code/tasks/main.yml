@@ -218,35 +218,19 @@
   register: mcp_files
 
 - name: Merge MCP server definitions into ~/.claude.json
-  ansible.builtin.script:
-    cmd: python3 -c "
-import json, glob, os
-
-claude_json_path = '{{ claude_home }}/.claude.json'
-mcp_dir = '{{ role_path }}/files/mcp'
-
-# Read existing ~/.claude.json or create empty
-if os.path.exists(claude_json_path):
-    with open(claude_json_path) as f:
-        config = json.load(f)
-else:
-    config = {}
-
-# Ensure mcpServers key exists
-if 'mcpServers' not in config:
-    config['mcpServers'] = {}
-
-# Merge each .json file from mcp/
-for mcp_file in glob.glob(os.path.join(mcp_dir, '*.json')):
-    with open(mcp_file) as f:
-        servers = json.load(f)
-    config['mcpServers'].update(servers)
-
-with open(claude_json_path, 'w') as f:
-    json.dump(config, f, indent=2)
-
-print(f'Merged {len(glob.glob(os.path.join(mcp_dir, \"*.json\")))} MCP server files')
-"
+  ansible.builtin.shell: |
+    python3 << 'PYEOF'
+    import json, glob, os
+    claude_json_path = "{{ claude_home }}/.claude.json"
+    mcp_dir = "{{ role_path }}/files/mcp"
+    config = json.load(open(claude_json_path)) if os.path.exists(claude_json_path) else {}
+    if "mcpServers" not in config: config["mcpServers"] = {}
+    for f in glob.glob(os.path.join(mcp_dir, "*.json")):
+        config["mcpServers"].update(json.load(open(f)))
+    json.dump(config, open(claude_json_path, "w"), indent=2)
+    PYEOF
+  args:
+    executable: /bin/bash
   when: mcp_files.matched > 0
 
 # ── Install script ──────────────────────────────────────────────────────────
