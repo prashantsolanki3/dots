@@ -189,6 +189,14 @@
     dest: "{{ claude_home }}/.claude/install.sh"
     mode: '0755'
 
+# ── npm packages (for npx-based skills/tools) ───────────────────────────────
+- name: Install npm packages for Claude Code skills
+  become: true
+  ansible.builtin.command: "npm install -g {{ item }}"
+  loop: "{{ claude_npm_packages | default([]) }}"
+  when: claude_npm_packages is defined and claude_npm_packages | length > 0
+  changed_when: true
+
 # ── Marketplace plugins ──────────────────────────────────────────────────────
 - name: Install Claude Code marketplace plugins
   ansible.builtin.command: "claude plugin install {{ item }}"
