@@ -19,7 +19,7 @@ PROVIDER="anthropic"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --provider)
-      PROVIDER="${2:?--provider requires a value}"
+      if [ -z "${2:-}" ]; then echo "Error: --provider requires a value"; echo "Usage: $0 [--provider anthropic|bedrock|vertex|openai-compat|foundry]"; exit 1; fi; PROVIDER="$2"
       shift 2
       ;;
     --provider=*)
