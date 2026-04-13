@@ -23,6 +23,7 @@ claude_plugins:
   - security-guidance
   - claude-md-management
   - hookify
+  - code-simplifier
 
 # External plugins from official marketplace
 claude_external_plugins:

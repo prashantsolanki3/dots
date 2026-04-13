@@ -107,12 +107,14 @@
 
 # ── Skills (user-level, available in all projects) ─────────────────────────
 - name: Ensure ~/.claude/skills directory exists
+  when: deploy_skills | default(true) | bool
   ansible.builtin.file:
     path: "{{ claude_home }}/.claude/skills"
     state: directory
     mode: '0755'
 
 - name: Find skill directories in role
+  when: deploy_skills | default(true) | bool
   ansible.builtin.find:
     paths: "{{ role_path }}/files/skills"
     file_type: directory
@@ -126,7 +128,7 @@
     state: link
     force: yes
   loop: "{{ skill_dirs.files }}"
-  when: claude_config_mode | default('link') == 'link'
+  when: deploy_skills | default(true) | bool and claude_config_mode | default('link') == 'link'
 
 - name: Copy each skill directory into ~/.claude/skills/
   ansible.builtin.copy:
@@ -134,16 +136,18 @@
     dest: "{{ claude_home }}/.claude/skills/{{ item.path | basename }}/"
     mode: '0644'
   loop: "{{ skill_dirs.files }}"
-  when: claude_config_mode | default('link') == 'copy'
+  when: deploy_skills | default(true) | bool and claude_config_mode | default('link') == 'copy'
 
 # ── Commands (user-level, available in all projects) ───────────────────────
 - name: Ensure ~/.claude/commands directory exists
+  when: deploy_commands | default(true) | bool
   ansible.builtin.file:
     path: "{{ claude_home }}/.claude/commands"
     state: directory
     mode: '0755'
 
 - name: Find command files in role
+  when: deploy_commands | default(true) | bool
   ansible.builtin.find:
     paths: "{{ role_path }}/files/commands"
     patterns: "*.md"
@@ -156,7 +160,7 @@
     state: link
     force: yes
   loop: "{{ command_files.files }}"
-  when: claude_config_mode | default('link') == 'link'
+  when: deploy_commands | default(true) | bool and claude_config_mode | default('link') == 'link'
 
 - name: Copy each command file into ~/.claude/commands/
   ansible.builtin.copy:
@@ -164,7 +168,7 @@
     dest: "{{ claude_home }}/.claude/commands/{{ item.path | basename }}"
     mode: '0644'
   loop: "{{ command_files.files }}"
-  when: claude_config_mode | default('link') == 'copy'
+  when: deploy_commands | default(true) | bool and claude_config_mode | default('link') == 'copy'
 
 # ── Settings.local.json (pre-approved permissions) ──────────────────────────
 - name: Deploy settings.local.json (link)
@@ -201,7 +205,7 @@
 - name: Install official marketplace plugins
   ansible.builtin.command: "claude plugin install {{ item }}"
   register: plugin_install
-  changed_when: "'Successfully installed' in plugin_install.stdout"
+  changed_when: false
   failed_when: false
   loop: "{{ claude_plugins | default([]) }}"
   when: claude_plugins | default([]) | length > 0
@@ -211,7 +215,7 @@
 - name: Install external plugins from official marketplace
   ansible.builtin.command: "claude plugin install {{ item }}"
   register: ext_plugin_install
-  changed_when: "'Successfully installed' in ext_plugin_install.stdout"
+  changed_when: false
   failed_when: false
   loop: "{{ claude_external_plugins | default([]) }}"
   when: claude_external_plugins | default([]) | length > 0
@@ -222,7 +226,7 @@
 - name: Add custom plugin marketplaces
   ansible.builtin.command: "claude plugin marketplace add {{ item }}"
   register: marketplace_add
-  changed_when: "'added' in marketplace_add.stdout or 'Added' in marketplace_add.stdout"
+  changed_when: false
   failed_when: false
   loop: "{{ claude_custom_marketplaces | default([]) }}"
   when: claude_custom_marketplaces | default([]) | length > 0
@@ -232,7 +236,7 @@
 - name: Install plugins from custom marketplaces
   ansible.builtin.command: "claude plugin install {{ item }}"
   register: custom_plugin_install
-  changed_when: "'Successfully installed' in custom_plugin_install.stdout"
+  changed_when: false
   failed_when: false
   loop: "{{ claude_custom_plugins | default([]) }}"
   when: claude_custom_plugins | default([]) | length > 0
