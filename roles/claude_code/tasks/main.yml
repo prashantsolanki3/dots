@@ -208,6 +208,47 @@
     mode: '0644'
   when: claude_config_mode | default('link') == 'copy'
 
+# ── MCP servers (merged into ~/.claude.json) ────────────────────────────────
+# Each .json file in files/mcp/ defines MCP servers. They get merged into
+# the mcpServers key of ~/.claude.json (the global Claude config).
+- name: Find MCP server definition files
+  ansible.builtin.find:
+    paths: "{{ role_path }}/files/mcp"
+    patterns: "*.json"
+  register: mcp_files
+
+- name: Merge MCP server definitions into ~/.claude.json
+  ansible.builtin.script:
+    cmd: python3 -c "
+import json, glob, os
+
+claude_json_path = '{{ claude_home }}/.claude.json'
+mcp_dir = '{{ role_path }}/files/mcp'
+
+# Read existing ~/.claude.json or create empty
+if os.path.exists(claude_json_path):
+    with open(claude_json_path) as f:
+        config = json.load(f)
+else:
+    config = {}
+
+# Ensure mcpServers key exists
+if 'mcpServers' not in config:
+    config['mcpServers'] = {}
+
+# Merge each .json file from mcp/
+for mcp_file in glob.glob(os.path.join(mcp_dir, '*.json')):
+    with open(mcp_file) as f:
+        servers = json.load(f)
+    config['mcpServers'].update(servers)
+
+with open(claude_json_path, 'w') as f:
+    json.dump(config, f, indent=2)
+
+print(f'Merged {len(glob.glob(os.path.join(mcp_dir, \"*.json\")))} MCP server files')
+"
+  when: mcp_files.matched > 0
+
 # ── Install script ──────────────────────────────────────────────────────────
 - name: Copy Claude Code install script
   ansible.builtin.copy:
