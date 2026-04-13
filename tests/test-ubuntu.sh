@@ -13,7 +13,7 @@
 set -e
 
 PROVIDER="${PROVIDER:-anthropic}"
-DOCKER="${DOCKER:-/usr/local/bin/docker}"
+DOCKER="${DOCKER:-$(command -v docker || echo docker)}"
 COMPOSE="$DOCKER compose -f docker-compose.test.yml"
 
 usage() {

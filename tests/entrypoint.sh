@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 # Container entrypoint — sets up SSH access and credential persistence.
 
 # ── SSH: inject host public key (idempotent — no duplicates) ─────────────────
