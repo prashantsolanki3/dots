@@ -1,0 +1,20 @@
+services:
+  ubuntu-test:
+    build:
+      context: tests
+      dockerfile: Dockerfile.ubuntu
+    volumes:
+      - .:/dots:ro
+      # Set HOST_SSH_PUBLIC_KEY to your public key path if it differs from the default.
+      # Example: export HOST_SSH_PUBLIC_KEY=~/.ssh/id_ed25519.pub
+      - ${HOST_SSH_PUBLIC_KEY:-~/.ssh/id_rsa.pub}:/tmp/host_id_rsa.pub:ro
+      - claude-credentials:/root/.claude-credentials
+    working_dir: /dots
+    ports:
+      - "2222:22"
+    environment:
+      - ANTHROPIC_API_KEY
+
+# Named volume — credentials survive container rebuilds
+volumes:
+  claude-credentials:

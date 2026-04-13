@@ -3,3 +3,6 @@ localhost
 
 ansible-hms-docker-config.yml
 env.yml
+
+# Claude Code session data
+.claude/.DS_Store

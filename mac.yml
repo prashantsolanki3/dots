@@ -1,0 +1,15 @@
+---
+- name: Configure local dotfiles
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    dotfiles_dir: "{{ ansible_facts['env']['HOME'] }}/Playground/dots"
+    claude_provider: anthropic
+
+  tasks:
+    - name: Install Claude Code CLI
+      include_tasks: tasks/install_claude_code.yml
+
+    - name: Configure Claude Code
+      include_tasks: tasks/configure_claude_code.yml

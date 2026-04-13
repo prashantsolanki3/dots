@@ -1,0 +1,61 @@
+---
+# Install the Claude Code CLI.
+#
+# macOS        — no-op. Install claude via the desktop app or a future brew formula.
+# Debian/Ubuntu — installs Node 20 LTS via NodeSource, then claude via npm globally.
+#                 Requires become (sudo) on non-root users.
+#
+# Note: NodeSource setup uses a downloaded shell script (curl | bash). This is the
+# officially supported NodeSource install method and is idempotent via `creates:`.
+# Review https://github.com/nodesource/distributions before use in sensitive environments.
+#
+# No variables required.
+
+# ── Debian/Ubuntu: install Node 20 + claude ──────────────────────────────────
+- name: "[Debian] Install curl and ca-certificates"
+  ansible.builtin.apt:
+    name:
+      - curl
+      - ca-certificates
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "[Debian] Add NodeSource Node 20 repo"
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      curl -fsSL https://deb.nodesource.com/setup_20.x | bash -e
+    creates: /etc/apt/sources.list.d/nodesource.list
+    executable: /bin/bash
+  become: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "[Debian] Install Node.js 20"
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "[Debian] Check if claude is already installed"
+  ansible.builtin.command: which claude
+  register: claude_installed
+  failed_when: false
+  changed_when: false
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "[Debian] Install claude via npm"
+  ansible.builtin.command: npm install -g @anthropic-ai/claude-code
+  become: yes
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - claude_installed.rc != 0
+
+# ── macOS: no-op ──────────────────────────────────────────────────────────────
+- name: "[macOS] Skip — install claude via the desktop app or brew"
+  ansible.builtin.debug:
+    msg: "macOS: claude installation is managed outside Ansible."
+  when: ansible_facts['os_family'] == "Darwin"
