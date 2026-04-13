@@ -189,12 +189,13 @@
     dest: "{{ claude_home }}/.claude/install.sh"
     mode: '0755'
 
-# ── Install ralph-loop plugin ────────────────────────────────────────────────
-- name: Install ralph-loop plugin
-  ansible.builtin.command: claude plugin install ralph-loop
-  register: ralph_install
-  changed_when: "'Successfully installed' in ralph_install.stdout"
+# ── Marketplace plugins ──────────────────────────────────────────────────────
+- name: Install Claude Code marketplace plugins
+  ansible.builtin.command: "claude plugin install {{ item }}"
+  register: plugin_install
+  changed_when: "'Successfully installed' in plugin_install.stdout"
   failed_when: false
-  when: install_ralph_plugin | default(true)
+  loop: "{{ claude_plugins | default([]) }}"
+  when: claude_plugins is defined and claude_plugins | length > 0
   environment:
     HOME: "{{ claude_home }}"

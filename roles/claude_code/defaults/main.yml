@@ -7,11 +7,25 @@ claude_provider: anthropic
 # Path to the dotfiles repo (used for symlinks)
 dotfiles_dir: "{{ playbook_dir }}"
 
-# Install ralph-loop plugin
-install_ralph_plugin: true
-
 # Config install mode: "link" for local dev (symlinks), "copy" for Docker (files copied)
 claude_config_mode: link
 
 # Target home directory (defaults to current user, override for Docker with host_username)
 claude_home: "{{ '/home/' + host_username if host_username is defined else ansible_facts['env']['HOME'] }}"
+
+# ── Marketplace plugins (installed via `claude plugin install <name>`) ──────
+# Add plugin names here. They're installed from the official Anthropic marketplace.
+claude_plugins:
+  - ralph-loop
+  # - another-plugin
+
+# ── Local skills (deployed from files/skills/<name>/SKILL.md) ──────────────
+# Skills auto-activate when Claude detects relevant context — no /slash needed.
+# Add skill directories to files/skills/ and they're deployed to ~/.claude/skills/.
+# Toggle deployment:
+deploy_skills: true
+
+# ── Local commands (deployed from files/commands/<name>.md) ────────────────
+# Commands are explicit /slash triggers available in all projects.
+# Add .md files to files/commands/ and they're deployed to ~/.claude/commands/.
+deploy_commands: true
