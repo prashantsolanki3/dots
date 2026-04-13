@@ -7,11 +7,45 @@ claude_provider: anthropic
 # Path to the dotfiles repo (used for symlinks)
 dotfiles_dir: "{{ playbook_dir }}"
 
-# Install ralph-loop plugin
-install_ralph_plugin: true
-
 # Config install mode: "link" for local dev (symlinks), "copy" for Docker (files copied)
 claude_config_mode: link
 
 # Target home directory (defaults to current user, override for Docker with host_username)
 claude_home: "{{ '/home/' + host_username if host_username is defined else ansible_facts['env']['HOME'] }}"
+
+# ── Marketplace plugins (installed via `claude plugin install <name>`) ──────
+# Official Anthropic marketplace (claude-plugins-official)
+claude_plugins:
+  - ralph-loop
+  - code-review
+  - pr-review-toolkit
+  - session-report
+  - security-guidance
+  - claude-md-management
+  - hookify
+  - code-simplifier
+
+# External plugins from official marketplace
+claude_external_plugins:
+  - github
+  - terraform
+  - playwright
+  - telegram
+
+# Third-party marketplaces to add before installing their plugins
+claude_custom_marketplaces:
+  - JuliusBrussee/caveman
+
+# Plugins from custom marketplaces (format: <name>@<marketplace>)
+claude_custom_plugins:
+  - caveman@caveman
+
+# ── npm packages (installed globally via `npm install -g`) ─────────────────
+claude_npm_packages:
+  - impeccable
+
+# ── Local skills (deployed from files/skills/<name>/SKILL.md) ──────────────
+deploy_skills: true
+
+# ── Local commands (deployed from files/commands/<name>.md) ────────────────
+deploy_commands: true
