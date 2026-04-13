@@ -15,7 +15,7 @@
 - name: Add GitHub CLI APT repository
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+    repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
     state: present
     filename: github-cli
   when: install_gh | default(true)
@@ -83,7 +83,7 @@
 - name: Add HashiCorp APT repository
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+    repo: "deb [arch={{ deb_arch }}] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
     state: present
   when: install_terraform | default(true)
 
@@ -106,7 +106,7 @@
 - name: Install Gitleaks
   become: true
   ansible.builtin.apt:
-    deb: "https://github.com/gitleaks/gitleaks/releases/download/{{ gitleaks_release.json.tag_name }}/gitleaks_{{ gitleaks_release.json.tag_name | regex_replace('^v', '') }}_linux_x64.deb"
+    deb: "https://github.com/gitleaks/gitleaks/releases/download/{{ gitleaks_release.json.tag_name }}/gitleaks_{{ gitleaks_release.json.tag_name | regex_replace('^v', '') }}_linux_{{ 'arm64' if ansible_architecture == 'aarch64' else 'x64' }}.deb"
   when:
     - install_gitleaks | default(true)
     - gitleaks_release is succeeded
@@ -123,7 +123,7 @@
 - name: Add Azure CLI APT repository
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/azure-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
+    repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/azure-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
     state: present
     filename: azure-cli
   when: install_az_cli | default(true)
