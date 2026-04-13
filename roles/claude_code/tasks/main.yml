@@ -20,7 +20,7 @@
     - ansible_facts['os_family'] == "Darwin"
     - not claude_bin_mac.stat.exists
 
-# ── Linux / WSL2: verify claude is reachable via PATH ────────────────────────
+# ── Linux / WSL2: install claude via npm if missing ─────────────────────────
 - name: "[Linux] Check that claude CLI binary is on PATH"
   ansible.builtin.command: which claude
   register: claude_bin_linux
@@ -28,11 +28,11 @@
   failed_when: false
   when: ansible_facts['os_family'] == "Debian"
 
-- name: "[Linux] Warn if claude binary not found (install via npm or direct download)"
-  ansible.builtin.debug:
-    msg: >
-      claude binary not found on PATH.
-      Install with: npm install -g @anthropic-ai/claude-code
+- name: "[Linux] Install Claude Code via npm"
+  become: true
+  ansible.builtin.command: npm install -g @anthropic-ai/claude-code
+  args:
+    creates: /usr/bin/claude
   when:
     - ansible_facts['os_family'] == "Debian"
     - claude_bin_linux.rc != 0
@@ -77,3 +77,15 @@
     src: install.sh
     dest: "{{ ansible_facts['env']['HOME'] }}/.claude/install.sh"
     mode: '0755'
+
+# ── Install ralph-loop plugin ────────────────────────────────────────────────
+- name: "[Linux] Install ralph-loop plugin"
+  ansible.builtin.command: claude plugin install ralph-loop
+  register: ralph_install
+  changed_when: "'Successfully installed' in ralph_install.stdout"
+  failed_when: false
+  when:
+    - install_ralph_plugin | default(true)
+    - ansible_facts['os_family'] == "Debian"
+  environment:
+    HOME: "{{ ansible_facts['env']['HOME'] }}"

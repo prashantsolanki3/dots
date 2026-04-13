@@ -10,6 +10,8 @@ install_pnpm: true
 install_node: true
 install_gitleaks: true
 install_az_cli: true
+install_python312: true
+install_postgresql_client: true
 
-# Node.js version for NodeSource setup
-node_major_version: "20"
+# Node.js version for NodeSource setup (22 required for smart-agents-website)
+node_major_version: "22"

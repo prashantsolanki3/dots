@@ -59,9 +59,9 @@
 - name: Install uv
   become: true
   ansible.builtin.shell: |
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
   args:
-    creates: /root/.local/bin/uv
+    creates: /usr/local/bin/uv
   when: install_uv | default(true)
 
 # ── pre-commit ───────────────────────────────────────────────────────────────
@@ -135,3 +135,30 @@
     state: present
     update_cache: yes
   when: install_az_cli | default(true)
+
+# ── Python 3.12 (for smart-agents-backend) ──────────────────────────────────
+- name: Add deadsnakes PPA for Python 3.12
+  become: true
+  ansible.builtin.apt_repository:
+    repo: ppa:deadsnakes/ppa
+    state: present
+  when: install_python312 | default(true)
+
+- name: Install Python 3.12
+  become: true
+  ansible.builtin.apt:
+    name:
+      - python3.12
+      - python3.12-venv
+      - python3.12-dev
+    state: present
+    update_cache: yes
+  when: install_python312 | default(true)
+
+# ── PostgreSQL client ───────────────────────────────────────────────────────
+- name: Install PostgreSQL client
+  become: true
+  ansible.builtin.apt:
+    name: postgresql-client
+    state: present
+  when: install_postgresql_client | default(true)
