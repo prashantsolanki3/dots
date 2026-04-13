@@ -40,7 +40,7 @@
 # ── Create config directories ───────────────────────────────────────────────
 - name: Ensure ~/.claude/agents directory exists
   ansible.builtin.file:
-    path: "{{ ansible_facts['env']['HOME'] }}/.claude/agents"
+    path: "{{ claude_home }}/.claude/agents"
     state: directory
     mode: '0755'
 
@@ -48,7 +48,7 @@
 - name: Symlink Claude Code settings.json
   ansible.builtin.file:
     src: "{{ role_path }}/files/settings.json"
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
+    dest: "{{ claude_home }}/.claude/settings.json"
     state: link
     force: yes
   when: claude_config_mode | default('link') == 'link'
@@ -56,7 +56,7 @@
 - name: Symlink Claude Code CLAUDE.md
   ansible.builtin.file:
     src: "{{ role_path }}/files/CLAUDE.md"
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/CLAUDE.md"
+    dest: "{{ claude_home }}/.claude/CLAUDE.md"
     state: link
     force: yes
   when: claude_config_mode | default('link') == 'link'
@@ -65,14 +65,14 @@
 - name: Copy Claude Code settings.json
   ansible.builtin.copy:
     src: settings.json
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
+    dest: "{{ claude_home }}/.claude/settings.json"
     mode: '0644'
   when: claude_config_mode | default('link') == 'copy'
 
 - name: Copy Claude Code CLAUDE.md
   ansible.builtin.copy:
     src: CLAUDE.md
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/CLAUDE.md"
+    dest: "{{ claude_home }}/.claude/CLAUDE.md"
     mode: '0644'
   when: claude_config_mode | default('link') == 'copy'
 
@@ -86,7 +86,7 @@
 - name: Symlink each agent file into ~/.claude/agents/
   ansible.builtin.file:
     src: "{{ item.path }}"
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/agents/{{ item.path | basename }}"
+    dest: "{{ claude_home }}/.claude/agents/{{ item.path | basename }}"
     state: link
     force: yes
   loop: "{{ agent_files.files }}"
@@ -95,7 +95,7 @@
 - name: Copy each agent file into ~/.claude/agents/
   ansible.builtin.copy:
     src: "{{ item.path }}"
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/agents/{{ item.path | basename }}"
+    dest: "{{ claude_home }}/.claude/agents/{{ item.path | basename }}"
     mode: '0644'
   loop: "{{ agent_files.files }}"
   when: claude_config_mode | default('link') == 'copy'
@@ -104,7 +104,7 @@
 - name: Deploy settings.local.json (link)
   ansible.builtin.file:
     src: "{{ role_path }}/files/settings.local.json"
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.local.json"
+    dest: "{{ claude_home }}/.claude/settings.local.json"
     state: link
     force: yes
   when: claude_config_mode | default('link') == 'link'
@@ -112,7 +112,7 @@
 - name: Deploy settings.local.json (copy)
   ansible.builtin.copy:
     src: settings.local.json
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.local.json"
+    dest: "{{ claude_home }}/.claude/settings.local.json"
     mode: '0644'
   when: claude_config_mode | default('link') == 'copy'
 
@@ -120,7 +120,7 @@
 - name: Copy Claude Code install script
   ansible.builtin.copy:
     src: install.sh
-    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/install.sh"
+    dest: "{{ claude_home }}/.claude/install.sh"
     mode: '0755'
 
 # ── Install ralph-loop plugin ────────────────────────────────────────────────
@@ -131,4 +131,4 @@
   failed_when: false
   when: install_ralph_plugin | default(true)
   environment:
-    HOME: "{{ ansible_facts['env']['HOME'] }}"
+    HOME: "{{ claude_home }}"
