@@ -65,18 +65,12 @@
   when: install_uv | default(true)
 
 # ── pre-commit ───────────────────────────────────────────────────────────────
-- name: Install pipx for Python tool isolation
+- name: Install pre-commit via pip (--break-system-packages for containers)
   become: true
-  ansible.builtin.apt:
-    name: pipx
+  ansible.builtin.pip:
+    name: pre-commit
     state: present
-  when: install_pre_commit | default(true)
-
-- name: Install pre-commit via pipx
-  become: true
-  ansible.builtin.command: pipx install pre-commit --global
-  args:
-    creates: /usr/local/bin/pre-commit
+    extra_args: --break-system-packages
   when: install_pre_commit | default(true)
 
 # ── Terraform ────────────────────────────────────────────────────────────────
