@@ -104,10 +104,16 @@
   register: gitleaks_release
   when: install_gitleaks | default(true)
 
-- name: Install Gitleaks
+- name: Download and install Gitleaks binary
   become: true
-  ansible.builtin.apt:
-    deb: "https://github.com/gitleaks/gitleaks/releases/download/{{ gitleaks_release.json.tag_name }}/gitleaks_{{ gitleaks_release.json.tag_name | regex_replace('^v', '') }}_linux_{{ 'arm64' if ansible_architecture == 'aarch64' else 'x64' }}.deb"
+  ansible.builtin.shell: |
+    TAG="{{ gitleaks_release.json.tag_name }}"
+    VER="${TAG#v}"
+    ARCH="{{ 'arm64' if ansible_architecture == 'aarch64' else 'x64' }}"
+    curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/${TAG}/gitleaks_${VER}_linux_${ARCH}.tar.gz" | tar xz -C /usr/local/bin gitleaks
+    chmod +x /usr/local/bin/gitleaks
+  args:
+    creates: /usr/local/bin/gitleaks
   when:
     - install_gitleaks | default(true)
     - gitleaks_release is succeeded
