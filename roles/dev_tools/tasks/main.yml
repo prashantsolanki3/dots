@@ -1,171 +1,175 @@
 ---
 # roles/dev_tools - Install developer tools (Ubuntu/Debian)
 # Each tool can be individually toggled via install_<tool> variables.
+# All tasks in this role use apt and are Debian/Ubuntu-only.
 
-# ── GitHub CLI (gh) ──────────────────────────────────────────────────────────
-- name: Add GitHub CLI GPG key
-  become: true
-  ansible.builtin.shell: |
-    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-    chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-  args:
-    creates: /usr/share/keyrings/githubcli-archive-keyring.gpg
-  when: install_gh | default(true)
+- name: dev_tools — Debian/Ubuntu only
+  when: ansible_facts['os_family'] == "Debian"
+  block:
+    # ── GitHub CLI (gh) ──────────────────────────────────────────────────────
+    - name: Add GitHub CLI GPG key
+      become: true
+      ansible.builtin.shell: |
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/githubcli-archive-keyring.gpg
+      when: install_gh | default(true)
 
-- name: Add GitHub CLI APT repository
-  become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
-    state: present
-    filename: github-cli
-  when: install_gh | default(true)
+    - name: Add GitHub CLI APT repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+        state: present
+        filename: github-cli
+      when: install_gh | default(true)
 
-- name: Install GitHub CLI
-  become: true
-  ansible.builtin.apt:
-    name: gh
-    state: present
-    update_cache: yes
-  when: install_gh | default(true)
+    - name: Install GitHub CLI
+      become: true
+      ansible.builtin.apt:
+        name: gh
+        state: present
+        update_cache: yes
+      when: install_gh | default(true)
 
-# ── Node.js (via NodeSource) ─────────────────────────────────────────────────
-- name: Add NodeSource GPG key and repository
-  become: true
-  ansible.builtin.shell: |
-    curl -fsSL https://deb.nodesource.com/setup_{{ node_major_version }}.x | bash -
-  args:
-    creates: /etc/apt/sources.list.d/nodesource.list
-  when: install_node | default(true)
+    # ── Node.js (via NodeSource) ─────────────────────────────────────────────
+    - name: Add NodeSource GPG key and repository
+      become: true
+      ansible.builtin.shell: |
+        curl -fsSL https://deb.nodesource.com/setup_{{ node_major_version }}.x | bash -
+      args:
+        creates: /etc/apt/sources.list.d/nodesource.list
+      when: install_node | default(true)
 
-- name: Install Node.js
-  become: true
-  ansible.builtin.apt:
-    name: nodejs
-    state: present
-    update_cache: yes
-  when: install_node | default(true)
+    - name: Install Node.js
+      become: true
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+        update_cache: yes
+      when: install_node | default(true)
 
-# ── pnpm ─────────────────────────────────────────────────────────────────────
-- name: Install pnpm via npm
-  become: true
-  ansible.builtin.command: npm install -g pnpm
-  args:
-    creates: /usr/bin/pnpm
-  when:
-    - install_pnpm | default(true)
-    - install_node | default(true)
+    # ── pnpm ─────────────────────────────────────────────────────────────────
+    - name: Install pnpm via npm
+      become: true
+      ansible.builtin.command: npm install -g pnpm
+      args:
+        creates: /usr/bin/pnpm
+      when:
+        - install_pnpm | default(true)
+        - install_node | default(true)
 
-# ── uv (Python package manager) ─────────────────────────────────────────────
-- name: Install uv
-  become: true
-  ansible.builtin.shell: |
-    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
-  args:
-    creates: /usr/local/bin/uv
-  when: install_uv | default(true)
+    # ── uv (Python package manager) ──────────────────────────────────────────
+    - name: Install uv
+      become: true
+      ansible.builtin.shell: |
+        curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+      args:
+        creates: /usr/local/bin/uv
+      when: install_uv | default(true)
 
-# ── pre-commit ───────────────────────────────────────────────────────────────
-- name: Install pre-commit via pip (--break-system-packages for containers)
-  become: true
-  ansible.builtin.pip:
-    name: pre-commit
-    state: present
-    extra_args: --break-system-packages
-  when: install_pre_commit | default(true)
+    # ── pre-commit ───────────────────────────────────────────────────────────
+    - name: Install pre-commit via pip (--break-system-packages for containers)
+      become: true
+      ansible.builtin.pip:
+        name: pre-commit
+        state: present
+        extra_args: --break-system-packages
+      when: install_pre_commit | default(true)
 
-# ── Terraform ────────────────────────────────────────────────────────────────
-- name: Add HashiCorp GPG key
-  become: true
-  ansible.builtin.apt_key:
-    url: https://apt.releases.hashicorp.com/gpg
-    state: present
-  when: install_terraform | default(true)
+    # ── Terraform ────────────────────────────────────────────────────────────
+    - name: Add HashiCorp GPG key
+      become: true
+      ansible.builtin.apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+      when: install_terraform | default(true)
 
-- name: Add HashiCorp APT repository
-  become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ deb_arch }}] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
-    state: present
-  when: install_terraform | default(true)
+    - name: Add HashiCorp APT repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ deb_arch }}] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+      when: install_terraform | default(true)
 
-- name: Install Terraform
-  become: true
-  ansible.builtin.apt:
-    name: terraform
-    state: present
-    update_cache: yes
-  when: install_terraform | default(true)
+    - name: Install Terraform
+      become: true
+      ansible.builtin.apt:
+        name: terraform
+        state: present
+        update_cache: yes
+      when: install_terraform | default(true)
 
-# ── Gitleaks ─────────────────────────────────────────────────────────────────
-- name: Get latest Gitleaks release version
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/gitleaks/gitleaks/releases/latest
-    return_content: yes
-  register: gitleaks_release
-  when: install_gitleaks | default(true)
+    # ── Gitleaks ─────────────────────────────────────────────────────────────
+    - name: Get latest Gitleaks release version
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/gitleaks/gitleaks/releases/latest
+        return_content: yes
+      register: gitleaks_release
+      when: install_gitleaks | default(true)
 
-- name: Download and install Gitleaks binary
-  become: true
-  ansible.builtin.shell: |
-    TAG="{{ gitleaks_release.json.tag_name }}"
-    VER="${TAG#v}"
-    ARCH="{{ 'arm64' if ansible_architecture == 'aarch64' else 'x64' }}"
-    curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/${TAG}/gitleaks_${VER}_linux_${ARCH}.tar.gz" | tar xz -C /usr/local/bin gitleaks
-    chmod +x /usr/local/bin/gitleaks
-  args:
-    creates: /usr/local/bin/gitleaks
-  when:
-    - install_gitleaks | default(true)
-    - gitleaks_release is succeeded
+    - name: Download and install Gitleaks binary
+      become: true
+      ansible.builtin.shell: |
+        TAG="{{ gitleaks_release.json.tag_name }}"
+        VER="${TAG#v}"
+        ARCH="{{ 'arm64' if ansible_architecture == 'aarch64' else 'x64' }}"
+        curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/${TAG}/gitleaks_${VER}_linux_${ARCH}.tar.gz" | tar xz -C /usr/local/bin gitleaks
+        chmod +x /usr/local/bin/gitleaks
+      args:
+        creates: /usr/local/bin/gitleaks
+      when:
+        - install_gitleaks | default(true)
+        - gitleaks_release is succeeded
 
-# ── Azure CLI ────────────────────────────────────────────────────────────────
-- name: Add Azure CLI GPG key
-  become: true
-  ansible.builtin.shell: |
-    curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/azure-archive-keyring.gpg
-  args:
-    creates: /usr/share/keyrings/azure-archive-keyring.gpg
-  when: install_az_cli | default(true)
+    # ── Azure CLI ────────────────────────────────────────────────────────────
+    - name: Add Azure CLI GPG key
+      become: true
+      ansible.builtin.shell: |
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/azure-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/azure-archive-keyring.gpg
+      when: install_az_cli | default(true)
 
-- name: Add Azure CLI APT repository
-  become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/azure-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
-    state: present
-    filename: azure-cli
-  when: install_az_cli | default(true)
+    - name: Add Azure CLI APT repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/azure-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
+        state: present
+        filename: azure-cli
+      when: install_az_cli | default(true)
 
-- name: Install Azure CLI
-  become: true
-  ansible.builtin.apt:
-    name: azure-cli
-    state: present
-    update_cache: yes
-  when: install_az_cli | default(true)
+    - name: Install Azure CLI
+      become: true
+      ansible.builtin.apt:
+        name: azure-cli
+        state: present
+        update_cache: yes
+      when: install_az_cli | default(true)
 
-# ── Python 3.12 (for smart-agents-backend) ──────────────────────────────────
-- name: Add deadsnakes PPA for Python 3.12
-  become: true
-  ansible.builtin.apt_repository:
-    repo: ppa:deadsnakes/ppa
-    state: present
-  when: install_python312 | default(true)
+    # ── Python 3.12 (for smart-agents-backend) ──────────────────────────────
+    - name: Add deadsnakes PPA for Python 3.12
+      become: true
+      ansible.builtin.apt_repository:
+        repo: ppa:deadsnakes/ppa
+        state: present
+      when: install_python312 | default(true)
 
-- name: Install Python 3.12
-  become: true
-  ansible.builtin.apt:
-    name:
-      - python3.12
-      - python3.12-venv
-      - python3.12-dev
-    state: present
-    update_cache: yes
-  when: install_python312 | default(true)
+    - name: Install Python 3.12
+      become: true
+      ansible.builtin.apt:
+        name:
+          - python3.12
+          - python3.12-venv
+          - python3.12-dev
+        state: present
+        update_cache: yes
+      when: install_python312 | default(true)
 
-# ── PostgreSQL client ───────────────────────────────────────────────────────
-- name: Install PostgreSQL client
-  become: true
-  ansible.builtin.apt:
-    name: postgresql-client
-    state: present
-  when: install_postgresql_client | default(true)
+    # ── PostgreSQL client ────────────────────────────────────────────────────
+    - name: Install PostgreSQL client
+      become: true
+      ansible.builtin.apt:
+        name: postgresql-client
+        state: present
+      when: install_postgresql_client | default(true)

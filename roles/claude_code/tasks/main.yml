@@ -3,6 +3,11 @@
 #
 # Handles macOS (Homebrew) and Linux (npm) installations.
 # Config mode: "link" (default, symlinks for local dev) or "copy" (for Docker).
+#
+# NOTE: The "link" config mode uses controller-local paths (role_path) for
+# symlink sources. This is intentional — both mac.yml and dev.yml run with
+# connection: local, so controller paths == target paths. The "copy" mode
+# should be used for remote or containerised targets.
 
 # ── macOS: verify claude is reachable via Homebrew ───────────────────────────
 - name: "[macOS] Check that claude CLI binary exists via Homebrew"

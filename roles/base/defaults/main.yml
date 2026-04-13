@@ -3,7 +3,9 @@ base_enabled: true
 
 base_packages:
   - curl
+  - gnupg
   - htop
+  - python3-pip
   - unzip
   - wget
   - zip

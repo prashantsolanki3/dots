@@ -1,6 +1,7 @@
 ---
 - name: Configure development workstation
-  hosts: all
+  hosts: all          # typically localhost via inventory; kept as 'all' for flexibility
+  connection: local   # this playbook provisions the local machine
   vars:
     base_enabled: true
     shell_enabled: true
