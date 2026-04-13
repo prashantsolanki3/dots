@@ -6,3 +6,9 @@ claude_provider: anthropic
 
 # Path to the dotfiles repo (used for symlinks)
 dotfiles_dir: "{{ playbook_dir }}"
+
+# Install ralph-loop plugin
+install_ralph_plugin: true
+
+# Config install mode: "link" for local dev (symlinks), "copy" for Docker (files copied)
+claude_config_mode: link

@@ -2,7 +2,7 @@
 # roles/claude_code - Install and configure Claude Code CLI
 #
 # Handles macOS (Homebrew) and Linux (npm) installations.
-# Symlinks config files from the role's files/ directory into ~/.claude/.
+# Config mode: "link" (default, symlinks for local dev) or "copy" (for Docker).
 
 # ── macOS: verify claude is reachable via Homebrew ───────────────────────────
 - name: "[macOS] Check that claude CLI binary exists via Homebrew"
@@ -37,19 +37,21 @@
     - ansible_facts['os_family'] == "Debian"
     - claude_bin_linux.rc != 0
 
-# ── Shared: create config directory and symlinks (same on all platforms) ──────
+# ── Create config directories ───────────────────────────────────────────────
 - name: Ensure ~/.claude/agents directory exists
   ansible.builtin.file:
     path: "{{ ansible_facts['env']['HOME'] }}/.claude/agents"
     state: directory
     mode: '0755'
 
+# ── Config mode: symlink (local dev) ────────────────────────────────────────
 - name: Symlink Claude Code settings.json
   ansible.builtin.file:
     src: "{{ role_path }}/files/settings.json"
     dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
     state: link
     force: yes
+  when: claude_config_mode | default('link') == 'link'
 
 - name: Symlink Claude Code CLAUDE.md
   ansible.builtin.file:
@@ -57,7 +59,24 @@
     dest: "{{ ansible_facts['env']['HOME'] }}/.claude/CLAUDE.md"
     state: link
     force: yes
+  when: claude_config_mode | default('link') == 'link'
 
+# ── Config mode: copy (Docker) ──────────────────────────────────────────────
+- name: Copy Claude Code settings.json
+  ansible.builtin.copy:
+    src: settings.json
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
+    mode: '0644'
+  when: claude_config_mode | default('link') == 'copy'
+
+- name: Copy Claude Code CLAUDE.md
+  ansible.builtin.copy:
+    src: CLAUDE.md
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/CLAUDE.md"
+    mode: '0644'
+  when: claude_config_mode | default('link') == 'copy'
+
+# ── Agent files (both modes) ────────────────────────────────────────────────
 - name: Find agent files in role
   ansible.builtin.find:
     paths: "{{ role_path }}/files/agents"
@@ -71,7 +90,33 @@
     state: link
     force: yes
   loop: "{{ agent_files.files }}"
+  when: claude_config_mode | default('link') == 'link'
 
+- name: Copy each agent file into ~/.claude/agents/
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/agents/{{ item.path | basename }}"
+    mode: '0644'
+  loop: "{{ agent_files.files }}"
+  when: claude_config_mode | default('link') == 'copy'
+
+# ── Settings.local.json (pre-approved permissions) ──────────────────────────
+- name: Deploy settings.local.json (link)
+  ansible.builtin.file:
+    src: "{{ role_path }}/files/settings.local.json"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.local.json"
+    state: link
+    force: yes
+  when: claude_config_mode | default('link') == 'link'
+
+- name: Deploy settings.local.json (copy)
+  ansible.builtin.copy:
+    src: settings.local.json
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.local.json"
+    mode: '0644'
+  when: claude_config_mode | default('link') == 'copy'
+
+# ── Install script ──────────────────────────────────────────────────────────
 - name: Copy Claude Code install script
   ansible.builtin.copy:
     src: install.sh
@@ -79,13 +124,11 @@
     mode: '0755'
 
 # ── Install ralph-loop plugin ────────────────────────────────────────────────
-- name: "[Linux] Install ralph-loop plugin"
+- name: Install ralph-loop plugin
   ansible.builtin.command: claude plugin install ralph-loop
   register: ralph_install
   changed_when: "'Successfully installed' in ralph_install.stdout"
   failed_when: false
-  when:
-    - install_ralph_plugin | default(true)
-    - ansible_facts['os_family'] == "Debian"
+  when: install_ralph_plugin | default(true)
   environment:
     HOME: "{{ ansible_facts['env']['HOME'] }}"
