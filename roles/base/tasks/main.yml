@@ -1,0 +1,34 @@
+---
+# roles/base - System update and base package installation (Ubuntu/Debian)
+
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+  register: result
+  until: result is not failed
+  retries: "{{ apt_retries }}"
+  delay: "{{ apt_retry_delay }}"
+  when: update_system | default(true)
+
+- name: Upgrade packages
+  become: true
+  ansible.builtin.apt:
+    upgrade: yes
+    autoremove: yes
+  register: result
+  until: result is not failed
+  retries: "{{ apt_retries }}"
+  delay: "{{ apt_retry_delay }}"
+  when: update_system | default(true)
+
+- name: Install base system packages
+  become: true
+  ansible.builtin.package:
+    name: "{{ base_packages }}"
+    state: present
+  register: result
+  until: result is not failed
+  retries: "{{ apt_retries }}"
+  delay: "{{ apt_retry_delay }}"
+  tags: ['base_packages', 'packages']

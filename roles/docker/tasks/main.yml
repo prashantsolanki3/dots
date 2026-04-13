@@ -1,0 +1,78 @@
+---
+# roles/docker - Install Docker CE with Compose plugin (Ubuntu/Debian)
+
+- name: Install Docker dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+  register: result
+  until: result is not failed
+  retries: "{{ apt_retries }}"
+  delay: "{{ apt_retry_delay }}"
+
+- name: Add Ubuntu Docker GPG key
+  become: true
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Add Ubuntu Docker APT repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Add Debian Docker GPG key
+  become: true
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+  when: ansible_distribution == 'Debian'
+
+- name: Add Debian Docker APT repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+  when: ansible_distribution == 'Debian'
+
+- name: Install Docker CE and plugins
+  become: true
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+  register: result
+  until: result is not failed
+  retries: "{{ apt_retries }}"
+  delay: "{{ apt_retry_delay }}"
+
+- name: Add user to Docker group
+  become: true
+  ansible.builtin.user:
+    name: "{{ host_username }}"
+    append: yes
+    groups: docker
+
+- name: Verify docker compose plugin is available
+  ansible.builtin.command: docker compose version
+  register: docker_compose_check
+  changed_when: false
+  failed_when: false
+
+- name: Show docker compose version
+  ansible.builtin.debug:
+    msg: "{{ docker_compose_check.stdout }}"
+  when: docker_compose_check.rc == 0

@@ -1,0 +1,8 @@
+---
+docker_enabled: true
+
+# Username to add to the docker group
+host_username: "{{ ansible_user_id }}"
+
+apt_retries: 15
+apt_retry_delay: 10

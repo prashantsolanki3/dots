@@ -1,0 +1,8 @@
+---
+claude_code_enabled: true
+
+# Provider: anthropic, bedrock, vertex
+claude_provider: anthropic
+
+# Path to the dotfiles repo (used for symlinks)
+dotfiles_dir: "{{ playbook_dir }}"

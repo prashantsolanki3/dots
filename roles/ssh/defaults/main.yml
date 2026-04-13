@@ -1,0 +1,8 @@
+---
+ssh_enabled: true
+
+# Username for file ownership
+host_username: "{{ ansible_user_id }}"
+
+# SSH authorized keys content (set in vars or inventory)
+authorized_keys: ""

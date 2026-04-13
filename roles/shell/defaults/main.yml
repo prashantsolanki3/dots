@@ -1,0 +1,13 @@
+---
+shell_enabled: true
+
+# Username for file ownership (Linux only)
+host_username: "{{ ansible_user_id }}"
+
+# Dotfiles to deploy to user home directory
+# Note: .bashrc is handled separately in tasks (stored as "bashrc" in files/)
+shell_dotfiles:
+  - .bash_aliases
+  - .curlrc
+  - .wgetrc
+  - .gitignore

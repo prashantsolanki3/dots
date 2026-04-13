@@ -1,0 +1,26 @@
+---
+- name: Configure development workstation
+  hosts: all
+  vars:
+    base_enabled: true
+    shell_enabled: true
+    git_enabled: true
+    docker_enabled: true
+    dev_tools_enabled: true
+    claude_code_enabled: true
+    ssh_enabled: true
+  roles:
+    - role: base
+      when: base_enabled | default(true)
+    - role: shell
+      when: shell_enabled | default(true)
+    - role: git
+      when: git_enabled | default(true)
+    - role: docker
+      when: docker_enabled | default(true)
+    - role: dev_tools
+      when: dev_tools_enabled | default(true)
+    - role: claude_code
+      when: claude_code_enabled | default(true)
+    - role: ssh
+      when: ssh_enabled | default(true)

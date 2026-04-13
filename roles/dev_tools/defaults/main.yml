@@ -1,0 +1,15 @@
+---
+dev_tools_enabled: true
+
+# Individual tool toggles
+install_gh: true
+install_uv: true
+install_pre_commit: true
+install_terraform: true
+install_pnpm: true
+install_node: true
+install_gitleaks: true
+install_az_cli: true
+
+# Node.js version for NodeSource setup
+node_major_version: "20"

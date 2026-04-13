@@ -1,0 +1,51 @@
+---
+# roles/git - Install git and deploy gitconfig template
+
+- name: Install Git (Linux)
+  become: true
+  ansible.builtin.apt:
+    name: git
+    state: present
+  when: ansible_facts['os_family'] != "Darwin"
+
+- name: Determine home directory
+  ansible.builtin.set_fact:
+    _git_home: "{{ ansible_facts['env']['HOME'] }}"
+
+- name: Deploy gitconfig from template (macOS)
+  ansible.builtin.template:
+    src: gitconfig
+    dest: "{{ _git_home }}/.gitconfig"
+    mode: '0600'
+  when:
+    - ansible_facts['os_family'] == "Darwin"
+    - git_user_name | length > 0
+    - git_email | length > 0
+
+- name: Deploy gitconfig from template (Linux)
+  ansible.builtin.template:
+    src: gitconfig
+    dest: "/home/{{ host_username }}/.gitconfig"
+    mode: '0600'
+    owner: "{{ host_username }}"
+    group: "{{ host_username }}"
+  when:
+    - ansible_facts['os_family'] != "Darwin"
+    - git_user_name | length > 0
+    - git_email | length > 0
+
+- name: Configure Git user name (fallback)
+  ansible.builtin.git_config:
+    name: user.name
+    scope: global
+    value: "{{ git_user_name }}"
+  when:
+    - git_user_name | length > 0
+
+- name: Configure Git email (fallback)
+  ansible.builtin.git_config:
+    name: user.email
+    scope: global
+    value: "{{ git_email }}"
+  when:
+    - git_email | length > 0
