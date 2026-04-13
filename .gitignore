@@ -4,6 +4,8 @@ localhost
 ansible-hms-docker-config.yml
 env.yml
 
+# macOS
+.DS_Store
+
 # Claude Code session data
-.claude/.DS_Store
-roles/claude_code/.DS_Store
+.claude/
