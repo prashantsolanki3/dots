@@ -105,6 +105,67 @@
   loop: "{{ agent_files.files }}"
   when: claude_config_mode | default('link') == 'copy'
 
+# ── Skills (user-level, available in all projects) ─────────────────────────
+- name: Ensure ~/.claude/skills directory exists
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.claude/skills"
+    state: directory
+    mode: '0755'
+
+- name: Find skill directories in role
+  ansible.builtin.find:
+    paths: "{{ role_path }}/files/skills"
+    file_type: directory
+    recurse: no
+  register: skill_dirs
+
+- name: Symlink each skill directory into ~/.claude/skills/
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "{{ claude_home }}/.claude/skills/{{ item.path | basename }}"
+    state: link
+    force: yes
+  loop: "{{ skill_dirs.files }}"
+  when: claude_config_mode | default('link') == 'link'
+
+- name: Copy each skill directory into ~/.claude/skills/
+  ansible.builtin.copy:
+    src: "{{ item.path }}/"
+    dest: "{{ claude_home }}/.claude/skills/{{ item.path | basename }}/"
+    mode: '0644'
+  loop: "{{ skill_dirs.files }}"
+  when: claude_config_mode | default('link') == 'copy'
+
+# ── Commands (user-level, available in all projects) ───────────────────────
+- name: Ensure ~/.claude/commands directory exists
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.claude/commands"
+    state: directory
+    mode: '0755'
+
+- name: Find command files in role
+  ansible.builtin.find:
+    paths: "{{ role_path }}/files/commands"
+    patterns: "*.md"
+  register: command_files
+
+- name: Symlink each command file into ~/.claude/commands/
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "{{ claude_home }}/.claude/commands/{{ item.path | basename }}"
+    state: link
+    force: yes
+  loop: "{{ command_files.files }}"
+  when: claude_config_mode | default('link') == 'link'
+
+- name: Copy each command file into ~/.claude/commands/
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ claude_home }}/.claude/commands/{{ item.path | basename }}"
+    mode: '0644'
+  loop: "{{ command_files.files }}"
+  when: claude_config_mode | default('link') == 'copy'
+
 # ── Settings.local.json (pre-approved permissions) ──────────────────────────
 - name: Deploy settings.local.json (link)
   ansible.builtin.file:
