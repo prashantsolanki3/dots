@@ -197,13 +197,44 @@
   when: claude_npm_packages is defined and claude_npm_packages | length > 0
   changed_when: true
 
-# ── Marketplace plugins ──────────────────────────────────────────────────────
-- name: Install Claude Code marketplace plugins
+# ── Official marketplace plugins ─────────────────────────────────────────────
+- name: Install official marketplace plugins
   ansible.builtin.command: "claude plugin install {{ item }}"
   register: plugin_install
   changed_when: "'Successfully installed' in plugin_install.stdout"
   failed_when: false
   loop: "{{ claude_plugins | default([]) }}"
-  when: claude_plugins is defined and claude_plugins | length > 0
+  when: claude_plugins | default([]) | length > 0
+  environment:
+    HOME: "{{ claude_home }}"
+
+- name: Install external plugins from official marketplace
+  ansible.builtin.command: "claude plugin install {{ item }}"
+  register: ext_plugin_install
+  changed_when: "'Successfully installed' in ext_plugin_install.stdout"
+  failed_when: false
+  loop: "{{ claude_external_plugins | default([]) }}"
+  when: claude_external_plugins | default([]) | length > 0
+  environment:
+    HOME: "{{ claude_home }}"
+
+# ── Custom marketplace plugins (e.g., caveman) ──────────────────────────────
+- name: Add custom plugin marketplaces
+  ansible.builtin.command: "claude plugin marketplace add {{ item }}"
+  register: marketplace_add
+  changed_when: "'added' in marketplace_add.stdout or 'Added' in marketplace_add.stdout"
+  failed_when: false
+  loop: "{{ claude_custom_marketplaces | default([]) }}"
+  when: claude_custom_marketplaces | default([]) | length > 0
+  environment:
+    HOME: "{{ claude_home }}"
+
+- name: Install plugins from custom marketplaces
+  ansible.builtin.command: "claude plugin install {{ item }}"
+  register: custom_plugin_install
+  changed_when: "'Successfully installed' in custom_plugin_install.stdout"
+  failed_when: false
+  loop: "{{ claude_custom_plugins | default([]) }}"
+  when: claude_custom_plugins | default([]) | length > 0
   environment:
     HOME: "{{ claude_home }}"

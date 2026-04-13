@@ -14,20 +14,37 @@ claude_config_mode: link
 claude_home: "{{ '/home/' + host_username if host_username is defined else ansible_facts['env']['HOME'] }}"
 
 # ── Marketplace plugins (installed via `claude plugin install <name>`) ──────
+# Official Anthropic marketplace (claude-plugins-official)
 claude_plugins:
   - ralph-loop
-  # - another-plugin
+  - code-review
+  - pr-review-toolkit
+  - session-report
+  - security-guidance
+  - claude-md-management
+  - hookify
+
+# External plugins from official marketplace
+claude_external_plugins:
+  - github
+  - terraform
+  - playwright
+  - telegram
+
+# Third-party marketplaces to add before installing their plugins
+claude_custom_marketplaces:
+  - JuliusBrussee/caveman
+
+# Plugins from custom marketplaces (format: <name>@<marketplace>)
+claude_custom_plugins:
+  - caveman@caveman
 
 # ── npm packages (installed globally via `npm install -g`) ─────────────────
-# For skills/tools that are npm packages invoked via npx.
-claude_npm_packages: []
-  # - "@anthropic-ai/claude-code-mcp"
-  # - "impeccable"
+claude_npm_packages:
+  - impeccable
 
 # ── Local skills (deployed from files/skills/<name>/SKILL.md) ──────────────
-# Skills auto-activate when Claude detects relevant context.
 deploy_skills: true
 
 # ── Local commands (deployed from files/commands/<name>.md) ────────────────
-# Commands are explicit /slash triggers available in all projects.
 deploy_commands: true
