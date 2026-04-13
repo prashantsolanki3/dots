@@ -14,7 +14,6 @@ claude_config_mode: link
 claude_home: "{{ '/home/' + host_username if host_username is defined else ansible_facts['env']['HOME'] }}"
 
 # ── Marketplace plugins (installed via `claude plugin install <name>`) ──────
-# Official Anthropic marketplace (claude-plugins-official)
 claude_plugins:
   - ralph-loop
   - code-review
@@ -32,7 +31,7 @@ claude_external_plugins:
   - playwright
   - telegram
 
-# Third-party marketplaces to add before installing their plugins
+# Third-party marketplaces
 claude_custom_marketplaces:
   - JuliusBrussee/caveman
 
@@ -41,8 +40,14 @@ claude_custom_plugins:
   - caveman@caveman
 
 # ── npm packages (installed globally via `npm install -g`) ─────────────────
+# For npx-based skills/tools and MCP servers
 claude_npm_packages:
   - impeccable
+  - sonarqube-mcp-server
+
+# ── MCP servers (merged into ~/.claude.json from files/mcp/*.json) ─────────
+# Drop .json files in files/mcp/ to add servers. See files/mcp/README.md.
+deploy_mcp_servers: true
 
 # ── Local skills (deployed from files/skills/<name>/SKILL.md) ──────────────
 deploy_skills: true

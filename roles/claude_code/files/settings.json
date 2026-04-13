@@ -17,5 +17,16 @@
     "playwright@claude-plugins-official": true,
     "telegram@claude-plugins-official": true,
     "caveman@caveman": true
+  },
+  "mcpServers": {
+    "sonarqube": {
+      "command": "npx",
+      "args": ["-y", "sonarqube-mcp-server@latest"],
+      "env": {
+        "SONARQUBE_URL": "https://sonarcloud.io",
+        "SONARQUBE_TOKEN": "${SONARQUBE_TOKEN}",
+        "SONARQUBE_ORGANIZATION": "${SONARQUBE_ORGANIZATION}"
+      }
+    }
   }
 }
