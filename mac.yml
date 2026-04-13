@@ -1,15 +1,23 @@
 ---
-- name: Configure local dotfiles
+# DEPRECATED: Use dev.yml with appropriate role toggles instead.
+# This file is kept for backward compatibility with existing macOS setups.
+- name: Configure macOS development environment
   hosts: localhost
   connection: local
-  gather_facts: true
   vars:
-    dotfiles_dir: "{{ ansible_facts['env']['HOME'] }}/Playground/dots"
+    dotfiles_dir: "{{ playbook_dir }}"
     claude_provider: anthropic
-
-  tasks:
-    - name: Install Claude Code CLI
-      include_tasks: tasks/install_claude_code.yml
-
-    - name: Configure Claude Code
-      include_tasks: tasks/configure_claude_code.yml
+    base_enabled: false
+    docker_enabled: false
+    dev_tools_enabled: false
+    ssh_enabled: false
+    shell_enabled: true
+    git_enabled: true
+    claude_code_enabled: true
+  roles:
+    - role: shell
+      when: shell_enabled | bool
+    - role: git
+      when: git_enabled | bool
+    - role: claude_code
+      when: claude_code_enabled | bool

@@ -1,0 +1,19 @@
+---
+base_enabled: true
+
+base_packages:
+  - curl
+  - gnupg
+  - htop
+  - python3-pip
+  - unzip
+  - wget
+  - zip
+  - colordiff
+  - lsb-release
+  - software-properties-common
+
+apt_retries: 15
+apt_retry_delay: 10
+
+update_system: true

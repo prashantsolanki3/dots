@@ -1,4 +1,7 @@
 ---
+# DEPRECATED: This playbook is kept for backward compatibility.
+# Prefer the role-based approach: use dev.yml for new workstation setups.
+# See roles/ directory for modular, toggleable configuration.
 - name: Configure AWS Pluto Instance
   hosts: all
   vars_files:

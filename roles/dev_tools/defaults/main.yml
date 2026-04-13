@@ -1,0 +1,20 @@
+---
+dev_tools_enabled: true
+
+# Computed architecture for APT repos (overridable)
+deb_arch: "{{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}"
+
+# Individual tool toggles
+install_gh: true
+install_uv: true
+install_pre_commit: true
+install_terraform: true
+install_pnpm: true
+install_node: true
+install_gitleaks: true
+install_az_cli: true
+install_python312: true
+install_postgresql_client: true
+
+# Node.js version for NodeSource setup (22 required for smart-agents-website)
+node_major_version: "22"

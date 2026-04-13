@@ -1,0 +1,52 @@
+---
+# roles/shell - Deploy shell dotfiles to the user home directory
+#
+# Supports both macOS (Darwin) and Linux.
+# On macOS files are copied to ~/; on Linux they are owned by host_username.
+#
+# Note: .bashrc is stored as "bashrc" (no leading dot) in files/ to avoid
+# tooling restrictions. It is deployed as ~/.bashrc via the explicit mapping.
+
+- name: Determine home directory
+  ansible.builtin.set_fact:
+    _shell_home: "{{ ansible_facts['env']['HOME'] }}"
+
+# Deploy dotfiles that have matching src/dest names (stored with leading dot)
+- name: Copy dotfiles to home directory (macOS)
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ _shell_home }}/{{ item }}"
+    mode: '0600'
+  loop: "{{ shell_dotfiles }}"
+  when: ansible_facts['os_family'] == "Darwin"
+  tags: ['user_dots', 'dots']
+
+- name: Copy dotfiles to home directory (Linux)
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/home/{{ host_username }}/{{ item }}"
+    mode: '0600'
+    owner: "{{ host_username }}"
+    group: "{{ host_username }}"
+  loop: "{{ shell_dotfiles }}"
+  when: ansible_facts['os_family'] != "Darwin"
+  tags: ['user_dots', 'dots']
+
+# Deploy bashrc separately (stored without leading dot in files/)
+- name: Copy bashrc to home directory (macOS)
+  ansible.builtin.copy:
+    src: bashrc
+    dest: "{{ _shell_home }}/.bashrc"
+    mode: '0600'
+  when: ansible_facts['os_family'] == "Darwin"
+  tags: ['user_dots', 'dots']
+
+- name: Copy bashrc to home directory (Linux)
+  ansible.builtin.copy:
+    src: bashrc
+    dest: "/home/{{ host_username }}/.bashrc"
+    mode: '0600'
+    owner: "{{ host_username }}"
+    group: "{{ host_username }}"
+  when: ansible_facts['os_family'] != "Darwin"
+  tags: ['user_dots', 'dots']

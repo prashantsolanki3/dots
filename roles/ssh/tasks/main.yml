@@ -1,0 +1,43 @@
+---
+# roles/ssh - SSH key deployment and authorized_keys management
+
+- name: Determine home directory
+  ansible.builtin.set_fact:
+    _ssh_home: "{{ ansible_facts['env']['HOME'] }}"
+
+- name: Ensure .ssh directory exists (macOS)
+  ansible.builtin.file:
+    path: "{{ _ssh_home }}/.ssh"
+    state: directory
+    mode: '0700'
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: Ensure .ssh directory exists (Linux)
+  ansible.builtin.file:
+    path: "/home/{{ host_username }}/.ssh"
+    state: directory
+    mode: '0700'
+    owner: "{{ host_username }}"
+    group: "{{ host_username }}"
+  become: true
+  when: ansible_facts['os_family'] != "Darwin"
+
+- name: Deploy authorized_keys from template (macOS)
+  ansible.builtin.template:
+    src: authorized_keys
+    dest: "{{ _ssh_home }}/.ssh/authorized_keys"
+    mode: '0600'
+  when:
+    - ansible_facts['os_family'] == "Darwin"
+    - authorized_keys | length > 0
+
+- name: Deploy authorized_keys from template (Linux)
+  ansible.builtin.template:
+    src: authorized_keys
+    dest: "/home/{{ host_username }}/.ssh/authorized_keys"
+    mode: '0600'
+    owner: "{{ host_username }}"
+    group: "{{ host_username }}"
+  when:
+    - ansible_facts['os_family'] != "Darwin"
+    - authorized_keys | length > 0
