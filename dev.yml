@@ -11,16 +11,16 @@
     ssh_enabled: true
   roles:
     - role: base
-      when: base_enabled | default(true)
+      when: base_enabled | bool
     - role: shell
-      when: shell_enabled | default(true)
+      when: shell_enabled | bool
     - role: git
-      when: git_enabled | default(true)
+      when: git_enabled | bool
     - role: docker
-      when: docker_enabled | default(true)
+      when: docker_enabled | bool
     - role: dev_tools
-      when: dev_tools_enabled | default(true)
+      when: dev_tools_enabled | bool
     - role: claude_code
-      when: claude_code_enabled | default(true)
+      when: claude_code_enabled | bool
     - role: ssh
-      when: ssh_enabled | default(true)
+      when: ssh_enabled | bool
