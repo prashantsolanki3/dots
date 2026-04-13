@@ -186,6 +186,28 @@
     mode: '0644'
   when: claude_config_mode | default('link') == 'copy'
 
+# ── Plugin config (marketplaces pre-registered, plugins enabled via settings.json)
+- name: Ensure ~/.claude/plugins directory exists
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.claude/plugins"
+    state: directory
+    mode: '0755'
+
+- name: Deploy known_marketplaces.json (link)
+  ansible.builtin.file:
+    src: "{{ role_path }}/files/plugins/known_marketplaces.json"
+    dest: "{{ claude_home }}/.claude/plugins/known_marketplaces.json"
+    state: link
+    force: yes
+  when: claude_config_mode | default('link') == 'link'
+
+- name: Deploy known_marketplaces.json (copy)
+  ansible.builtin.copy:
+    src: plugins/known_marketplaces.json
+    dest: "{{ claude_home }}/.claude/plugins/known_marketplaces.json"
+    mode: '0644'
+  when: claude_config_mode | default('link') == 'copy'
+
 # ── Install script ──────────────────────────────────────────────────────────
 - name: Copy Claude Code install script
   ansible.builtin.copy:
