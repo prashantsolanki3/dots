@@ -1,7 +1,22 @@
 ---
+# Master toggle: run this role at all (kept for back-compat with `dev.yml` gate)
 docker_enabled: true
 
-# Username to add to the docker group
+# Granular toggles — at least one must be true when docker_enabled is true.
+#   docker_install_cli    : install docker-ce-cli + buildx + compose plugin
+#   docker_install_engine : install docker-ce + containerd.io (host daemon)
+#
+# Common patterns:
+#   - Bare-metal / VM that runs containers directly:  cli=true,  engine=true (default)
+#   - Dev container that talks to host's docker via mounted /var/run/docker.sock:
+#                                                     cli=true,  engine=false
+#   - CLI-only image (e.g. CI runner that uses remote Docker):
+#                                                     cli=true,  engine=false
+docker_install_cli: true
+docker_install_engine: true
+
+# Username to add to the docker group (only when engine is installed; group
+# only exists with the daemon package).
 host_username: "{{ ansible_user_id }}"
 
 apt_retries: 15
