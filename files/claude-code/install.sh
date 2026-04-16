@@ -73,11 +73,22 @@ echo "Target   : $CLAUDE_DIR"
 echo ""
 
 # ── Create target directory ───────────────────────────────────────────────────
-mkdir -p "$CLAUDE_DIR/agents"
+mkdir -p "$CLAUDE_DIR/agents" "$CLAUDE_DIR/hooks"
 
 # ── Symlink core config files ─────────────────────────────────────────────────
 ln -sf "$SCRIPT_DIR/settings.json" "$CLAUDE_DIR/settings.json"
 echo "  linked  settings.json       → $SCRIPT_DIR/settings.json"
+
+# Hook scripts (referenced from settings.json `hooks` block).
+# Mirrors what roles/claude_code/tasks/main.yml does in the Ansible flow.
+HOOK_SRC="$(cd "$SCRIPT_DIR/../../roles/claude_code/files/hooks" 2>/dev/null && pwd || true)"
+if [ -n "$HOOK_SRC" ]; then
+  for h in "$HOOK_SRC/"*.sh; do
+    [ -f "$h" ] || continue
+    ln -sf "$h" "$CLAUDE_DIR/hooks/$(basename "$h")"
+    echo "  linked  hooks/$(basename "$h") → $h"
+  done
+fi
 
 ln -sf "$SCRIPT_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 echo "  linked  CLAUDE.md           → $SCRIPT_DIR/CLAUDE.md"

@@ -186,6 +186,38 @@
     mode: '0644'
   when: claude_config_mode | default('link') == 'copy'
 
+# ── Hooks (user-level shell scripts invoked from settings.json hooks block) ──
+# preserve-effort-max.sh keeps effortLevel=max in ~/.claude/settings.json even
+# when the Claude CLI rewrites the file (toggling plugins, accepting prompts).
+- name: Ensure ~/.claude/hooks directory exists
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.claude/hooks"
+    state: directory
+    mode: '0755'
+
+- name: Find hook scripts in role
+  ansible.builtin.find:
+    paths: "{{ role_path }}/files/hooks"
+    patterns: "*.sh"
+  register: hook_files
+
+- name: Symlink each hook script into ~/.claude/hooks/
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "{{ claude_home }}/.claude/hooks/{{ item.path | basename }}"
+    state: link
+    force: yes
+  loop: "{{ hook_files.files }}"
+  when: claude_config_mode | default('link') == 'link'
+
+- name: Copy each hook script into ~/.claude/hooks/
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ claude_home }}/.claude/hooks/{{ item.path | basename }}"
+    mode: '0755'
+  loop: "{{ hook_files.files }}"
+  when: claude_config_mode | default('link') == 'copy'
+
 # ── Plugin directory (marketplaces created by `claude plugin install`) ───────
 - name: Ensure ~/.claude/plugins directory exists
   ansible.builtin.file:
