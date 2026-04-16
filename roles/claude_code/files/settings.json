@@ -28,5 +28,18 @@
         "SONARQUBE_ORGANIZATION": "${SONARQUBE_ORGANIZATION}"
       }
     }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/preserve-effort-max.sh\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
   }
 }
