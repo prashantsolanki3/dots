@@ -1,0 +1,61 @@
+---
+# ansible-lint configuration
+# See: https://ansible.readthedocs.io/projects/lint/rules/
+#
+# Each skip below is justified inline. Do not extend this list without a
+# comment explaining why fixing the rule is unreasonable for this repo.
+
+exclude_paths:
+  # Galaxy role cache populated by `ansible-galaxy install -r requirements.yml`.
+  # Linting third-party roles is out of scope — we track their own upstream lint.
+  - .ansible/
+  # Existing ignore entries from the repo's conventions.
+  - .cache/
+  - site.retry
+  # `tasks/mount_glusterfs.yml` is referenced only from the deprecated
+  # template.yml (header says "DEPRECATED: prefer dev.yml"). The file was
+  # removed when roles/ was introduced. load-failure is unskippable, so we
+  # exclude the (virtual) missing path instead.
+  - tasks/mount_glusterfs.yml
+
+skip_list:
+  # Variables in this repo use domain-oriented names (e.g. `host_username`,
+  # `update_system`, `mounts`, `install_node`) that are shared across multiple
+  # roles and external-facing playbook invocations. Prefixing every var with
+  # the role name (`base_update_system`, `dev_tools_install_node`, etc.) would
+  # break existing playbook invocations and user-facing variable contracts.
+  # Revisit when we adopt collection-style namespacing.
+  - var-naming[no-role-prefix]
+
+  # `command`-module tasks in this repo are installers and system bootstrapping
+  # steps (npm install, mount, curl into pipe, apt-add-key). Adding rigorous
+  # `changed_when:` conditions requires per-task idempotency logic that
+  # belongs in a future refactor. `command_warn: false` alone isn't enough.
+  - no-changed-when
+
+  # Several tasks shell out to `systemctl daemon-reload`, `mount -a`, and
+  # `curl | ...` intentionally because the corresponding first-party modules
+  # (systemd, mount, get_url) don't cover the exact workflow (e.g. piped gpg
+  # key dearmoring, fuse.s3fs mounts configured via fstab). Rewrites would
+  # change behavior and are out of scope for a pure lint-cleanup PR.
+  - command-instead-of-module
+
+  # These playbooks deliberately install developer tooling at `state: latest`
+  # so that a re-run picks up upstream security updates. Pinning would be a
+  # behavior change — it belongs in a separate versioning effort.
+  - package-latest
+
+  # `set -o pipefail` can't always be added to the single-line curl|dd|chmod
+  # installer shells without restructuring them. Enabling this rule globally
+  # would force a rewrite of every installer. Addressed piecewise in future PRs.
+  - risky-shell-pipe
+
+  # fstab lines inside `lineinfile: line:` are single strings that cannot be
+  # wrapped without breaking fstab syntax. Long installer URLs inside
+  # `apt_repository: repo:` are similarly unwrappable.
+  - yaml[line-length]
+
+  # Single occurrence on `git: version: HEAD` used to clone the caller's own
+  # dotfiles repo. Pinning to a specific SHA defeats the purpose (always
+  # pull the tip). Behavioral change — out of scope.
+  - latest[git]
