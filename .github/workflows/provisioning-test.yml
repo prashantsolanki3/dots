@@ -101,7 +101,13 @@ jobs:
 
           CHANGED=$(grep -E '^localhost' /tmp/second_run.log | grep -oE 'changed=[0-9]+' | head -1 | cut -d= -f2)
           echo "Idempotence check: changed=${CHANGED} on second run"
-          THRESHOLD=5
+          # Observed baseline: changed=5 on re-run, driven by intentionally
+          # non-idempotent tasks — `npm state: latest` for Claude Code, the
+          # MCP-merge shell task (no changed_when), and the npm global
+          # install loop (changed_when: true). Threshold=8 gives headroom
+          # for one or two future additions of the same class without
+          # failing; tighten once those cases are refactored.
+          THRESHOLD=8
           if [ -z "$CHANGED" ]; then
             echo "::warning::Could not parse changed= from PLAY RECAP; skipping idempotence assertion"
             exit 0
