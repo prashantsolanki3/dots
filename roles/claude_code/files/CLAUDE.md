@@ -16,3 +16,10 @@ Agent teams are enabled. Use `claude --agent orchestrator` to start a continuous
 - One concern per commit, format: `type(scope): description`
 - Always read AGENTS.md and AI_INSTRUCTIONS.md in the project repo first
 - Prefer worktree isolation for implementation work
+
+## Effort level
+
+`effortLevel` is pinned to `max` in `~/.claude/settings.json` and self-heals
+on every session start via `~/.claude/hooks/preserve-effort-max.sh`. Do not
+override with `--effort low|medium|high` unless you genuinely need to throttle
+a one-off run.
