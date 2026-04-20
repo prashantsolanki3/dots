@@ -12,7 +12,7 @@
     state: directory
     mode: '0700'
     owner: '{{ default_volume_owner }}'
-    group: '{{ default_volume_owner }}'
+    group: '{{ default_volume_group }}'
   with_items: "{{ github_runner_repos }}"
 
 - name: Ensure app state directory
@@ -21,7 +21,7 @@
     state: directory
     mode: '0700'
     owner: '{{ default_volume_owner }}'
-    group: '{{ default_volume_owner }}'
+    group: '{{ default_volume_group }}'
   with_items: "{{ github_runner_repos }}"
 
 - name: Create Unit file
