@@ -5,7 +5,8 @@
 #   1. Static: both checked-in settings.json files declare effortLevel: max.
 #   2. Runtime: the preserve-effort-max.sh hook is idempotent and self-healing.
 #
-# No Docker / no network. Runs in <1s. Wired into CI via .github/workflows/main.yml.
+# No Docker / no network. Runs in ~1s (includes a `sleep 1` to cross the
+# filesystem mtime boundary for the idempotency check). Run manually.
 set -e
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
