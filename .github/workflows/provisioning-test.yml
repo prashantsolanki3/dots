@@ -59,36 +59,23 @@ jobs:
           ansible-galaxy role install -r requirements.yml --force
           ansible-galaxy collection install community.general
 
-      - name: Build extra-vars file (typed bools for ansible-core 2.20 strict conditionals)
-        # Passing `-e foo=false` on the CLI coerces the value to the string
-        # "false", which some role `when:` clauses interpret as truthy under
-        # ansible-core 2.20's tightened conditional evaluation. A JSON
-        # extra-vars file preserves booleans as actual booleans.
-        run: |
-          # install_az_cli=false: ubuntu-latest runners ship with Azure CLI
-          # already configured via /etc/apt/keyrings/microsoft.gpg; re-adding
-          # the repo under a different keyring path triggers
-          #   "Conflicting values set for option Signed-By"
-          # from APT. Skipping the install in CI preserves coverage of every
-          # other dev_tools sub-task without masking real role bugs.
-          cat > /tmp/ci-vars.json <<JSON
-          {
-            "host_username": "$(whoami)",
-            "claude_config_mode": "copy",
-            "ssh_enabled": false,
-            "update_system": false,
-            "install_az_cli": false
-          }
-          JSON
-          cat /tmp/ci-vars.json
-
       - name: Run ${{ matrix.playbook }} (first pass — provisioning)
         id: first_run
+        # Flag `when:` clauses in the roles now pipe through `| bool`, so
+        # `-e foo=false` coerces correctly and we no longer need a JSON
+        # extra-vars file to preserve boolean types.
+        # `install_az_cli` defaults to true: the role now writes the key to
+        # /etc/apt/keyrings/microsoft.gpg (same path as the runner's
+        # pre-installed Azure CLI), so APT no longer reports conflicting
+        # signed-by values.
         run: |
           ansible-playbook ${{ matrix.playbook }} \
             -i "localhost," \
             --connection=local \
-            -e "@/tmp/ci-vars.json"
+            -e "host_username=$(whoami)" \
+            -e "claude_config_mode=copy" \
+            -e "ssh_enabled=false" \
+            -e "update_system=false"
 
       - name: Run ${{ matrix.playbook }} (second pass — idempotence check)
         id: second_run
@@ -106,7 +93,10 @@ jobs:
           ansible-playbook ${{ matrix.playbook }} \
             -i "localhost," \
             --connection=local \
-            -e "@/tmp/ci-vars.json" \
+            -e "host_username=$(whoami)" \
+            -e "claude_config_mode=copy" \
+            -e "ssh_enabled=false" \
+            -e "update_system=false" \
             | tee /tmp/second_run.log
 
           CHANGED=$(grep -E '^localhost' /tmp/second_run.log | grep -oE 'changed=[0-9]+' | head -1 | cut -d= -f2)
