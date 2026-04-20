@@ -11,8 +11,8 @@ store_path: /mnt/store
 mounts:
   - {
       type: 'glusterfs',
-      name: '{{env}}_store',
-      mount_path: '{{store_path}}',
+      name: '{{ env }}_store',
+      mount_path: '{{ store_path }}',
       mount: true,
       owner: "root",
       group: "root"
@@ -21,7 +21,7 @@ volumes:
   - {
       type: 'glusterfs',
       name: 'downloads',
-      path: '{{store_path}}/downloads',
+      path: '{{ store_path }}/downloads',
       owner: "{{ default_volume_owner }}",
       group: "{{ default_volume_group }}" ,
       config_state: present,
@@ -30,7 +30,7 @@ volumes:
   - {
       type: 'glusterfs',
       name: 'media',
-      path: '{{store_path}}/media',
+      path: '{{ store_path }}/media',
       owner: "{{ default_volume_owner }}",
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -47,7 +47,7 @@ volumes:
   - {
       type: 'glusterfs',
       name: 'home_playground',
-      path: '{{store_path}}/home/playground',
+      path: '{{ store_path }}/home/playground',
       owner: "{{ default_volume_owner }}",
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -56,7 +56,7 @@ volumes:
   - {
       type: 'glusterfs',
       name: 'apps_playground',
-      path: '{{store_path}}/store/apps/playground',
+      path: '{{ store_path }}/store/apps/playground',
       owner: "{{ default_volume_owner }}",
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -65,7 +65,7 @@ volumes:
   - {
       type: 'glusterfs',
       name: 'home_media',
-      path: '{{store_path}}/store/home/media',
+      path: '{{ store_path }}/store/home/media',
       owner: "{{ default_volume_owner }}",
       group: "{{ default_volume_group }}",
       config_state: present,
@@ -74,7 +74,7 @@ volumes:
   - {
       type: 'glusterfs',
       name: 'apps_media',
-      path: '{{store_path}}/store/apps/media',
+      path: '{{ store_path }}/store/apps/media',
       owner: "{{ default_volume_owner }}",
       group: "{{ default_volume_group }}",
       config_state: present,

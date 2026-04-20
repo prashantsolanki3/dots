@@ -12,12 +12,12 @@
 
 - name: Check code server config file
   stat:
-    path: /home/{{host_username}}/.config/code-server/config.yaml
+    path: /home/{{ host_username }}/.config/code-server/config.yaml
   register: code_server_config
 
 - name: Configure Code Server - Bind Addr
   lineinfile:
-    path: /home/{{host_username}}/.config/code-server/config.yaml
+    path: /home/{{ host_username }}/.config/code-server/config.yaml
     regexp: '^bind-addr:'
     line: 'bind-addr: 0.0.0.0:8080'
     state: present
@@ -26,6 +26,6 @@
 - name: Enable Code Server Service
   become: true
   systemd:
-    name: code-server@{{host_username}}
+    name: code-server@{{ host_username }}
     enabled: yes
     state: started

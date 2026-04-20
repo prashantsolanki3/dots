@@ -43,7 +43,7 @@
 
 - name: Install Docker
   apt:
-    name: '{{item}}'
+    name: '{{ item }}'
     state: present
   loop:
     - docker-ce

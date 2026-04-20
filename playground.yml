@@ -22,7 +22,7 @@
   tasks:
     - name: Install base system packages
       package:
-        name: '{{item}}'
+        name: '{{ item }}'
         state: latest
       loop:
         - curl
@@ -57,14 +57,14 @@
         state: present
     - name: Add APT repositories
       apt_repository:
-        repo: '{{item}}'
+        repo: '{{ item }}'
         state: present
       loop:
-        - deb [arch=amd64] https://apt.releases.hashicorp.com {{ansible_distribution_release}} main
+        - deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
         - ppa:deadsnakes/ppa
     - name: Install dev packages
       package:
-        name: '{{item}}'
+        name: '{{ item }}'
         state: latest
       loop:
         - git
@@ -87,7 +87,7 @@
 
     - name: Remove not-needed packages
       package:
-        name: '{{item}}'
+        name: '{{ item }}'
         state: absent
       loop:
         - chromium
@@ -96,25 +96,25 @@
 
     - name: Ensure user dot files
       copy:
-        src: '{{item.src}}'
-        dest: '{{item.dest}}'
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
         mode: '0600'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
+        owner: '{{ host_username }}'
+        group: '{{ host_username }}'
       # Add user dot files here
       loop:
-        - { src: dots/.wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
-        - { src: dots/.gitignore, dest: '/home/{{host_username}}/.gitignore' }
-        - { src: dots/.curlrc, dest: '/home/{{host_username}}/.curlrc' }
-        - { src: dots/.bash_aliases, dest: '/home/{{host_username}}/.bash_aliases' }
-        - { src: dots/.bashrc, dest: '/home/{{host_username}}/.bashrc' }
+        - { src: dots/.wgetrc, dest: '/home/{{ host_username }}/.wgetrc' }
+        - { src: dots/.gitignore, dest: '/home/{{ host_username }}/.gitignore' }
+        - { src: dots/.curlrc, dest: '/home/{{ host_username }}/.curlrc' }
+        - { src: dots/.bash_aliases, dest: '/home/{{ host_username }}/.bash_aliases' }
+        - { src: dots/.bashrc, dest: '/home/{{ host_username }}/.bashrc' }
 
       tags: ['user_dots', 'dots']
 
     - name: Ensure root dot files
       copy:
-        src: '{{item.src}}'
-        dest: '{{item.dest}}'
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
         mode: '0600'
         owner: root
         group: root
@@ -127,32 +127,32 @@
 
     - name: Ensure default directories in home
       file:
-        path: '{{item}}'
+        path: '{{ item }}'
         state: directory
         mode: '0700'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
+        owner: '{{ host_username }}'
+        group: '{{ host_username }}'
       loop:
-        - '/home/{{host_username}}/dots'
-        - '/home/{{host_username}}/playground'
-        - '/home/{{host_username}}/.ssh'
+        - '/home/{{ host_username }}/dots'
+        - '/home/{{ host_username }}/playground'
+        - '/home/{{ host_username }}/.ssh'
       become: true
       tags: ['dir-structure']
 
     - name: Ensure user files (from templates)
       template:
-        src: '{{item.src}}'
-        dest: '{{item.dest}}'
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
         mode: '0600'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
+        owner: '{{ host_username }}'
+        group: '{{ host_username }}'
       loop:
-        - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
+        - { src: dots/authorized_keys, dest: '/home/{{ host_username }}/.ssh/authorized_keys' }
 
     # Install python extra packages and ensure they are up to date.
     - name: Ensure pip3 packages
       pip:
-        name: '{{item}}'
+        name: '{{ item }}'
         executable: pip3
         state: latest
       loop:

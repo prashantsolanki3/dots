@@ -42,7 +42,7 @@
 - name: Add S3FS Buckets to fstab
   lineinfile:
     path: "/etc/fstab"
-    line: "{{ item.name }} {{ item.mount_path }} fuse.s3fs _netdev,allow_other,use_cache=/tmp,url=https://s3.{{item.region|default(default_aws_region)}}.amazonaws.com,uid={{ item.owner | default(default_volume_owner) }},gid={{ item.group | default(default_volume_group) }} 0 0"
+    line: "{{ item.name }} {{ item.mount_path }} fuse.s3fs _netdev,allow_other,use_cache=/tmp,url=https://s3.{{ item.region | default(default_aws_region) }}.amazonaws.com,uid={{ item.owner | default(default_volume_owner) }},gid={{ item.group | default(default_volume_group) }} 0 0"
     state: "{{ item.config_state | default('present') }}"
   when:
     - item.type == "s3fs"

@@ -25,7 +25,7 @@
 
     - name: Install base system packages
       package:
-        name: "{{item}}"
+        name: "{{ item }}"
         state: latest
       loop:
         - curl
@@ -48,19 +48,19 @@
   tasks:
     - name: Ensure user dot files
       copy:
-        src: "{{item.src}}"
-        dest: "{{item.dest}}"
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
         mode: "0600"
-        owner: "{{host_username}}"
-        group: "{{host_username}}"
+        owner: "{{ host_username }}"
+        group: "{{ host_username }}"
       # Add user dot files here
       loop:
-        - { src: dots/.wgetrc, dest: "/home/{{host_username}}/.wgetrc" }
-        - { src: dots/.gitignore, dest: "/home/{{host_username}}/.gitignore" }
-        - { src: dots/.curlrc, dest: "/home/{{host_username}}/.curlrc" }
+        - { src: dots/.wgetrc, dest: "/home/{{ host_username }}/.wgetrc" }
+        - { src: dots/.gitignore, dest: "/home/{{ host_username }}/.gitignore" }
+        - { src: dots/.curlrc, dest: "/home/{{ host_username }}/.curlrc" }
         - {
             src: dots/.bash_aliases,
-            dest: "/home/{{host_username}}/.bash_aliases",
+            dest: "/home/{{ host_username }}/.bash_aliases",
           }
       tags: ["user_dots", "dots"]
 
@@ -70,11 +70,11 @@
 
     - name: Ensure template files
       template:
-        src: '{{item.src}}'
-        dest: '{{item.dest}}'
-        mode: '{{item.mode}}'
-        owner: '{{host_username}}'
-        group: '{{host_username}}'
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
+        mode: '{{ item.mode }}'
+        owner: '{{ host_username }}'
+        group: '{{ host_username }}'
       loop:
         - { src: aws/credentials, dest: '/etc/passwd-s3fs', mode: '0600' }
 
