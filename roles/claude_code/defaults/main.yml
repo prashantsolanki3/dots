@@ -34,10 +34,12 @@ claude_external_plugins:
 # Third-party marketplaces
 claude_custom_marketplaces:
   - JuliusBrussee/caveman
+  - moazbuilds/claudeclaw
 
 # Plugins from custom marketplaces (format: <name>@<marketplace>)
 claude_custom_plugins:
   - caveman@caveman
+  - claudeclaw@claudeclaw
 
 # ── npm packages (installed globally via `npm install -g`) ─────────────────
 # For npx-based skills/tools and MCP servers
