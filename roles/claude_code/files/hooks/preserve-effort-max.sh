@@ -22,6 +22,10 @@
 # fix it, the user already has the same broken state they had before.
 set -u
 
+# Hooks must never fail if HOME is unavailable in the environment. Without a
+# usable HOME we have nothing to repair, so exit cleanly.
+[ -n "${HOME:-}" ] || exit 0
+
 SETTINGS="${HOME}/.claude/settings.json"
 
 # Need python3 — present on every dev box we target. Bail silently if not.
