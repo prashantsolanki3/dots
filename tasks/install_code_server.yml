@@ -8,7 +8,7 @@
 
 - name: Install Code Server
   become: true
-  ansible.builtin.command: bash +x /tmp/install-code-server.sh
+  ansible.builtin.command: bash /tmp/install-code-server.sh
 
 - name: Check code server config file
   ansible.builtin.stat:
