@@ -140,6 +140,8 @@
       become: true
       ansible.builtin.shell: |
         curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
+        chown root:root /etc/apt/keyrings/microsoft.gpg
+        chmod 0644 /etc/apt/keyrings/microsoft.gpg
       args:
         creates: /etc/apt/keyrings/microsoft.gpg
       when: install_az_cli | default(true) | bool
