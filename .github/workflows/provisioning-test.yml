@@ -1,0 +1,96 @@
+name: Ansible-Provisioning-Test
+
+# Real end-to-end `ansible-playbook` run — catches runtime failures that
+# --syntax-check (in main.yml) cannot: broken apt repos, missing collection
+# modules, template rendering errors, apt package disappearances, npm
+# breakage, Claude Code CLI regressions, etc.
+#
+# Trigger strategy (hybrid):
+#   - PR:     path-filtered on ansible-relevant files only, to keep unrelated
+#             PRs (docs, workflow tweaks) cheap.
+#   - main:   weekly schedule (cron) to catch external drift — upstream
+#             package versions, CLI updates, certificate rotations, etc.
+#   - manual: workflow_dispatch for on-demand runs.
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'roles/**'
+      - 'dev.yml'
+      - 'mac.yml'
+      - 'requirements.yml'
+      - '.github/workflows/provisioning-test.yml'
+  schedule:
+    # Monday 03:00 UTC — off-peak, catches weekend upstream changes.
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+jobs:
+  provision:
+    name: provision (${{ matrix.playbook }} on ${{ matrix.os }})
+    # macOS runners cost ~10x Linux minutes; the risk surface on mac.yml
+    # (3 roles, mostly Homebrew-dependent) doesn't justify per-PR spend.
+    # Revisit once Linux coverage is stable for N weeks.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            playbook: dev.yml
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ansible
+        run: pip install ansible
+
+      - name: Install required collections
+        run: ansible-galaxy collection install community.general
+
+      - name: Run ${{ matrix.playbook }} (first pass — provisioning)
+        id: first_run
+        run: |
+          ansible-playbook ${{ matrix.playbook }} \
+            -i "localhost," \
+            --connection=local \
+            -e "host_username=$(whoami)" \
+            -e "claude_config_mode=copy" \
+            -e "ssh_enabled=false" \
+            -e "update_system=false"
+
+      - name: Run ${{ matrix.playbook }} (second pass — idempotence check)
+        id: second_run
+        run: |
+          # Capture the PLAY RECAP summary. A well-behaved playbook should
+          # report changed=0 on the second run. We allow a small threshold
+          # because a handful of tasks (e.g., `claude plugin install` which
+          # uses `changed_when: false` but is reinvoked, or shell installers
+          # with `creates:` guards) may intermittently report changes.
+          set -o pipefail
+          ansible-playbook ${{ matrix.playbook }} \
+            -i "localhost," \
+            --connection=local \
+            -e "host_username=$(whoami)" \
+            -e "claude_config_mode=copy" \
+            -e "ssh_enabled=false" \
+            -e "update_system=false" \
+            | tee /tmp/second_run.log
+
+          # Extract "changed=N" from PLAY RECAP line for localhost.
+          CHANGED=$(grep -E '^localhost' /tmp/second_run.log | grep -oE 'changed=[0-9]+' | head -1 | cut -d= -f2)
+          echo "Idempotence check: changed=${CHANGED} on second run"
+          THRESHOLD=5
+          if [ -z "$CHANGED" ]; then
+            echo "::warning::Could not parse changed= from PLAY RECAP; skipping idempotence assertion"
+            exit 0
+          fi
+          if [ "$CHANGED" -gt "$THRESHOLD" ]; then
+            echo "::error::Idempotence regression: ${CHANGED} tasks changed on second run (threshold=${THRESHOLD})"
+            exit 1
+          fi
