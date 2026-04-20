@@ -58,15 +58,18 @@ if data.get("effortLevel") == target:
 
 data["effortLevel"] = target
 
-# Atomic write via tmp + rename. Swallow write errors (permission denied, disk
-# full, rename failure) so the hook never blocks session start — the user keeps
-# the same state they already had.
+# Atomic write via tmp + rename. Resolve symlinks first so we update the
+# target file (e.g. the dots repo copy in `link` mode) rather than clobbering
+# the symlink itself with a regular file. Swallow write errors (permission
+# denied, disk full, rename failure) so the hook never blocks session start —
+# the user keeps the same state they already had.
 try:
-    tmp = path + ".tmp"
+    target = os.path.realpath(path)
+    tmp = target + ".tmp"
     with open(tmp, "w") as fp:
         json.dump(data, fp, indent=2)
         fp.write("\n")
-    os.replace(tmp, path)
+    os.replace(tmp, target)
 except Exception:
     sys.exit(0)
 PY
