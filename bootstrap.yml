@@ -14,7 +14,9 @@
 
   handlers:
     - name: Restart sshd
-      ansible.builtin.service: name=sshd state=restarted
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
     - name: Reload systemctl
       ansible.builtin.command: systemctl daemon-reload
 
@@ -57,6 +59,7 @@
       ansible.builtin.file:
         path: ${HOME}/.ssh
         state: directory
+        mode: '0700'
     - name: Ensure user files
       ansible.builtin.copy:
         src: '{{ item.src }}'

@@ -53,7 +53,7 @@
   ansible.builtin.command: mount {{ item.mount_path }}
   when: item.mount
   run_once: true
-  ignore_errors: true
+  failed_when: false
   with_items: "{{ mounts }}"
   tags: ['dir-structure', 'mount']
 

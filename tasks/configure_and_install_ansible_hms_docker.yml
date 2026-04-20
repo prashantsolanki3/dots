@@ -5,6 +5,7 @@
   ansible.builtin.copy:
     src: ansible-hms-docker-config.yml
     dest: /opt/ansible-hms-docker/vars/default.yml
+    mode: '0644'
 
 - name: Run HMS Docker
   become: true

@@ -3,6 +3,7 @@
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
+    mode: '0755'
     owner: "{{ item.owner | default(default_volume_owner) }}"
     group: "{{ item.group | default(default_volume_group) }}"
   with_items: "{{ volumes }}"
@@ -17,7 +18,7 @@
     force: true
   become: true
   run_once: true
-  ignore_errors: true
+  failed_when: false
   loop: "{{ volumes }}"
   when:
     - item.type == 'glusterfs'
@@ -28,7 +29,7 @@
     name: "{{ item.name }}"
   become: true
   run_once: true
-  ignore_errors: true
+  failed_when: false
   loop: "{{ volumes }}"
   when:
     - item.type == 'glusterfs'

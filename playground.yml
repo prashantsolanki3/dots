@@ -13,7 +13,9 @@
     apt_retry_delay: 10
   handlers:
     - name: Restart sshd
-      ansible.builtin.service: name=sshd state=restarted
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
       become: true
   pre_tasks:
     - name: Update System

@@ -1,6 +1,9 @@
 ---
 - name: Create environment file
-  ansible.builtin.template: src=github-actions/ephemeral-github-actions-runner.env.j2 dest=/etc/{{ item.name }}-github-actions-runner.env mode=600
+  ansible.builtin.template:
+    src: github-actions/ephemeral-github-actions-runner.env.j2
+    dest: "/etc/{{ item.name }}-github-actions-runner.env"
+    mode: '0600'
   with_items: "{{ github_runner_repos }}"
 
 - name: Ensure app env directory
@@ -25,10 +28,10 @@
   ansible.builtin.template:
     src: github-actions/ephemeral-github-actions-runner.service.j2
     dest: /etc/systemd/system/{{ item.name }}-github-actions-runner.service
-    mode: 644
+    mode: '0644'
   with_items: "{{ github_runner_repos }}"
   notify:
-    - reload systemctl
+    - Reload systemctl
 - name: Start Github runner
   ansible.builtin.service:
     name: "{{ item.name }}-github-actions-runner.service"
