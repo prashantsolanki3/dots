@@ -42,7 +42,7 @@
       delay: '{{ apt_retry_delay }}'
 
 
-    - name:  Mount Network volumes
+    - name: Mount Network volumes
       when:
         - mounts is defined
       ansible.builtin.include_tasks: tasks/mount_network_volumes.yml
