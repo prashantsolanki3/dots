@@ -58,10 +58,7 @@
         - { src: dots/.wgetrc, dest: "/home/{{ host_username }}/.wgetrc" }
         - { src: dots/.gitignore, dest: "/home/{{ host_username }}/.gitignore" }
         - { src: dots/.curlrc, dest: "/home/{{ host_username }}/.curlrc" }
-        - {
-            src: dots/.bash_aliases,
-            dest: "/home/{{ host_username }}/.bash_aliases",
-          }
+        - { src: dots/.bash_aliases, dest: "/home/{{ host_username }}/.bash_aliases" }
       tags: ["user_dots", "dots"]
 
     - name: Configure Git
