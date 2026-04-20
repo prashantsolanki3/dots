@@ -1,0 +1,124 @@
+name: Ansible-Provisioning-Test
+
+# Real end-to-end `ansible-playbook` run — catches runtime failures that
+# --syntax-check (in main.yml) cannot: broken apt repos, missing collection
+# modules, template rendering errors, apt package disappearances, npm
+# breakage, Claude Code CLI regressions, etc.
+#
+# Trigger strategy (hybrid):
+#   - PR:     path-filtered on ansible-relevant files only, to keep unrelated
+#             PRs (docs, workflow tweaks) cheap.
+#   - main:   weekly schedule (cron) to catch external drift — upstream
+#             package versions, CLI updates, certificate rotations, etc.
+#   - manual: workflow_dispatch for on-demand runs.
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'roles/**'
+      - 'dev.yml'
+      - 'mac.yml'
+      - 'requirements.yml'
+      - '.github/workflows/provisioning-test.yml'
+  schedule:
+    # Monday 03:00 UTC — off-peak, catches weekend upstream changes.
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+jobs:
+  provision:
+    name: provision (${{ matrix.playbook }} on ${{ matrix.os }})
+    # macOS runners cost ~10x Linux minutes; the risk surface on mac.yml
+    # (3 roles, mostly Homebrew-dependent) doesn't justify per-PR spend.
+    # Revisit once Linux coverage is stable for N weeks.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            playbook: dev.yml
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ansible
+        run: pip install ansible
+
+      - name: Install Galaxy dependencies (roles + collections)
+        # Install both the requirements.yml Galaxy roles and the
+        # community.general collection. This path is listed in the PR
+        # trigger filter above, so installing ensures changes to
+        # requirements.yml are actually validated end-to-end.
+        run: |
+          ansible-galaxy role install -r requirements.yml --force
+          ansible-galaxy collection install community.general
+
+      - name: Build extra-vars file (typed bools for ansible-core 2.20 strict conditionals)
+        # Passing `-e foo=false` on the CLI coerces the value to the string
+        # "false", which some role `when:` clauses interpret as truthy under
+        # ansible-core 2.20's tightened conditional evaluation. A JSON
+        # extra-vars file preserves booleans as actual booleans.
+        run: |
+          # install_az_cli=false: ubuntu-latest runners ship with Azure CLI
+          # already configured via /etc/apt/keyrings/microsoft.gpg; re-adding
+          # the repo under a different keyring path triggers
+          #   "Conflicting values set for option Signed-By"
+          # from APT. Skipping the install in CI preserves coverage of every
+          # other dev_tools sub-task without masking real role bugs.
+          cat > /tmp/ci-vars.json <<JSON
+          {
+            "host_username": "$(whoami)",
+            "claude_config_mode": "copy",
+            "ssh_enabled": false,
+            "update_system": false,
+            "install_az_cli": false
+          }
+          JSON
+          cat /tmp/ci-vars.json
+
+      - name: Run ${{ matrix.playbook }} (first pass — provisioning)
+        id: first_run
+        run: |
+          ansible-playbook ${{ matrix.playbook }} \
+            -i "localhost," \
+            --connection=local \
+            -e "@/tmp/ci-vars.json"
+
+      - name: Run ${{ matrix.playbook }} (second pass — idempotence check)
+        id: second_run
+        # Observed baseline on a clean runner: changed=5. Sources are
+        # intentionally non-idempotent tasks in the claude_code role:
+        #   - [Linux] Install/upgrade Claude Code via npm (state: latest)
+        #   - Install npm packages for skills (changed_when: true, loop)
+        #   - Merge MCP server definitions (shell: ... with no changed_when)
+        # plus occasional apt_repository re-registration when NodeSource
+        # updates upstream. Threshold=8 gives one or two slots of headroom
+        # before genuine regressions (missing creates:, duplicate apt repo
+        # adds, new shell tasks without changed_when) trip the check.
+        run: |
+          set -o pipefail
+          ansible-playbook ${{ matrix.playbook }} \
+            -i "localhost," \
+            --connection=local \
+            -e "@/tmp/ci-vars.json" \
+            | tee /tmp/second_run.log
+
+          CHANGED=$(grep -E '^localhost' /tmp/second_run.log | grep -oE 'changed=[0-9]+' | head -1 | cut -d= -f2)
+          THRESHOLD=8
+          echo "Idempotence check: changed=${CHANGED} on second run (threshold=${THRESHOLD})"
+          if [ -z "$CHANGED" ]; then
+            # Fail loud — silently skipping would mask ansible format
+            # changes, stdout callback swaps, or a broken playbook run.
+            echo "::error::Could not parse changed= from PLAY RECAP — idempotence check is unverified. Inspect the log above."
+            exit 1
+          fi
+          if [ "$CHANGED" -gt "$THRESHOLD" ]; then
+            echo "::error::Idempotence regression: ${CHANGED} tasks changed on second run (threshold=${THRESHOLD})"
+            exit 1
+          fi
