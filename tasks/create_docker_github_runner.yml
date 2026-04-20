@@ -33,5 +33,5 @@
   ansible.builtin.service:
     name: "{{ item.name }}-github-actions-runner.service"
     state: started
-    enabled: yes
+    enabled: true
   with_items: "{{ github_runner_repos }}"

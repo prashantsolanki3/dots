@@ -54,7 +54,7 @@
       ansible.builtin.service:
         name: glusterd
         state: started
-        enabled: yes
+        enabled: true
 
     - name: Mount External Network volumes
       when:

@@ -2,7 +2,7 @@
 - name: Update apt cache
   become: true
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
   register: result
   until: result is not failed
   retries: '{{ apt_retries }}'
@@ -11,8 +11,8 @@
 - name: Upgrade packages
   become: true
   ansible.builtin.apt:
-    upgrade: yes
-    autoremove: yes
+    upgrade: true
+    autoremove: true
   register: result
   until: result is not failed
   retries: '{{ apt_retries }}'

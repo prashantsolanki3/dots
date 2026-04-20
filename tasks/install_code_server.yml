@@ -27,5 +27,5 @@
   become: true
   ansible.builtin.systemd:
     name: code-server@{{ host_username }}
-    enabled: yes
+    enabled: true
     state: started

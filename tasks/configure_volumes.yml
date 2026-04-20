@@ -14,7 +14,7 @@
     brick: "{{ item.path }}"
     cluster: "{{ ansible_default_ipv4.address }}"
     host: "{{ ansible_default_ipv4.address }}"
-    force: yes
+    force: true
   become: true
   run_once: true
   ignore_errors: true

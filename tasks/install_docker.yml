@@ -60,7 +60,7 @@
 - name: Add user to Docker group
   ansible.builtin.user:
     name: "{{ host_username }}"
-    append: yes
+    append: true
     groups: docker
   become: true
 

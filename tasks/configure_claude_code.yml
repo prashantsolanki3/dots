@@ -37,21 +37,21 @@
     src: "{{ dotfiles_dir }}/files/claude-code/settings.json"
     dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
     state: link
-    force: yes
+    force: true
 
 - name: Symlink CLAUDE.md
   ansible.builtin.file:
     src: "{{ dotfiles_dir }}/files/claude-code/CLAUDE.md"
     dest: "{{ ansible_facts['env']['HOME'] }}/.claude/CLAUDE.md"
     state: link
-    force: yes
+    force: true
 
 - name: "Symlink active-provider.env ({{ claude_provider }})"
   ansible.builtin.file:
     src: "{{ dotfiles_dir }}/files/claude-code/models/{{ claude_provider }}.env"
     dest: "{{ ansible_facts['env']['HOME'] }}/.claude/active-provider.env"
     state: link
-    force: yes
+    force: true
 
 - name: Find agent files
   ansible.builtin.find:
@@ -64,5 +64,5 @@
     src: "{{ item.path }}"
     dest: "{{ ansible_facts['env']['HOME'] }}/.claude/agents/{{ item.path | basename }}"
     state: link
-    force: yes
+    force: true
   loop: "{{ agent_files.files }}"
