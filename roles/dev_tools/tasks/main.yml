@@ -14,7 +14,7 @@
         chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
       args:
         creates: /usr/share/keyrings/githubcli-archive-keyring.gpg
-      when: install_gh | default(true)
+      when: install_gh | default(true) | bool
 
     - name: Add GitHub CLI APT repository
       become: true
@@ -22,7 +22,7 @@
         repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
         state: present
         filename: github-cli
-      when: install_gh | default(true)
+      when: install_gh | default(true) | bool
 
     - name: Install GitHub CLI
       become: true
@@ -30,7 +30,7 @@
         name: gh
         state: present
         update_cache: true
-      when: install_gh | default(true)
+      when: install_gh | default(true) | bool
 
     # ── Node.js (via NodeSource) ─────────────────────────────────────────────
     - name: Add NodeSource GPG key and repository
@@ -39,7 +39,7 @@
         curl -fsSL https://deb.nodesource.com/setup_{{ node_major_version }}.x | bash -
       args:
         creates: /etc/apt/sources.list.d/nodesource.list
-      when: install_node | default(true)
+      when: install_node | default(true) | bool
 
     - name: Install Node.js
       become: true
@@ -47,7 +47,7 @@
         name: nodejs
         state: present
         update_cache: true
-      when: install_node | default(true)
+      when: install_node | default(true) | bool
 
     # ── pnpm ─────────────────────────────────────────────────────────────────
     - name: Install pnpm via npm
@@ -56,8 +56,8 @@
       args:
         creates: /usr/bin/pnpm
       when:
-        - install_pnpm | default(true)
-        - install_node | default(true)
+        - install_pnpm | default(true) | bool
+        - install_node | default(true) | bool
 
     # ── uv (Python package manager) ──────────────────────────────────────────
     - name: Install uv
@@ -66,7 +66,7 @@
         curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
       args:
         creates: /usr/local/bin/uv
-      when: install_uv | default(true)
+      when: install_uv | default(true) | bool
 
     # ── pre-commit ───────────────────────────────────────────────────────────
     - name: Install pre-commit via pip (--break-system-packages for containers)
@@ -75,7 +75,7 @@
         name: pre-commit
         state: present
         extra_args: --break-system-packages
-      when: install_pre_commit | default(true)
+      when: install_pre_commit | default(true) | bool
 
     # ── Terraform ────────────────────────────────────────────────────────────
     - name: Add HashiCorp GPG key
@@ -83,14 +83,14 @@
       ansible.builtin.apt_key:
         url: https://apt.releases.hashicorp.com/gpg
         state: present
-      when: install_terraform | default(true)
+      when: install_terraform | default(true) | bool
 
     - name: Add HashiCorp APT repository
       become: true
       ansible.builtin.apt_repository:
         repo: "deb [arch={{ deb_arch }}] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
         state: present
-      when: install_terraform | default(true)
+      when: install_terraform | default(true) | bool
 
     - name: Install Terraform
       become: true
@@ -98,7 +98,7 @@
         name: terraform
         state: present
         update_cache: true
-      when: install_terraform | default(true)
+      when: install_terraform | default(true) | bool
 
     # ── Gitleaks ─────────────────────────────────────────────────────────────
     - name: Get latest Gitleaks release version
@@ -106,7 +106,7 @@
         url: https://api.github.com/repos/gitleaks/gitleaks/releases/latest
         return_content: true
       register: gitleaks_release
-      when: install_gitleaks | default(true)
+      when: install_gitleaks | default(true) | bool
 
     - name: Download and install Gitleaks binary
       become: true
@@ -119,25 +119,40 @@
       args:
         creates: /usr/local/bin/gitleaks
       when:
-        - install_gitleaks | default(true)
+        - install_gitleaks | default(true) | bool
         - gitleaks_release is succeeded
 
     # ── Azure CLI ────────────────────────────────────────────────────────────
+    # Keyring lives at /etc/apt/keyrings/microsoft.gpg to match the upstream
+    # Microsoft APT convention used by the pre-installed Azure CLI package on
+    # GitHub-hosted Ubuntu runners. A distinct path here collides with the
+    # pre-existing repo definition and APT fails with "Conflicting values
+    # set for option Signed-By" for packages.microsoft.com.
+    - name: Ensure /etc/apt/keyrings directory exists
+      become: true
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      when: install_az_cli | default(true) | bool
+
     - name: Add Azure CLI GPG key
       become: true
       ansible.builtin.shell: |
-        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/azure-archive-keyring.gpg
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
+        chown root:root /etc/apt/keyrings/microsoft.gpg
+        chmod 0644 /etc/apt/keyrings/microsoft.gpg
       args:
-        creates: /usr/share/keyrings/azure-archive-keyring.gpg
-      when: install_az_cli | default(true)
+        creates: /etc/apt/keyrings/microsoft.gpg
+      when: install_az_cli | default(true) | bool
 
     - name: Add Azure CLI APT repository
       become: true
       ansible.builtin.apt_repository:
-        repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/azure-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
+        repo: "deb [arch={{ deb_arch }} signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
         state: present
         filename: azure-cli
-      when: install_az_cli | default(true)
+      when: install_az_cli | default(true) | bool
 
     - name: Install Azure CLI
       become: true
@@ -145,7 +160,7 @@
         name: azure-cli
         state: present
         update_cache: true
-      when: install_az_cli | default(true)
+      when: install_az_cli | default(true) | bool
 
     # ── Python 3.12 (for smart-agents-backend) ──────────────────────────────
     - name: Add deadsnakes PPA for Python 3.12
@@ -153,7 +168,7 @@
       ansible.builtin.apt_repository:
         repo: ppa:deadsnakes/ppa
         state: present
-      when: install_python312 | default(true)
+      when: install_python312 | default(true) | bool
 
     - name: Install Python 3.12
       become: true
@@ -164,7 +179,7 @@
           - python3.12-dev
         state: present
         update_cache: true
-      when: install_python312 | default(true)
+      when: install_python312 | default(true) | bool
 
     # ── PostgreSQL client ────────────────────────────────────────────────────
     - name: Install PostgreSQL client
@@ -172,4 +187,4 @@
       ansible.builtin.apt:
         name: postgresql-client
         state: present
-      when: install_postgresql_client | default(true)
+      when: install_postgresql_client | default(true) | bool
