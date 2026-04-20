@@ -37,8 +37,12 @@ echo "── Layer 2: preserve-effort-max.sh hook ──────────
 [ -x "$HOOK" ] || fail "hook not executable: $HOOK"
 [ -x "$HOOK" ] && pass "hook is executable"
 
-# Sandbox: scratch HOME with throw-away settings file
-SANDBOX="$(mktemp -d)"
+# Sandbox: scratch HOME with throw-away settings file.
+# `mktemp -d` without a template works on GNU coreutils and modern BSD; the
+# fallback `-t <prefix>` covers older BSD `mktemp` implementations that require
+# a template argument. Either call yields an absolute path on a tmpfs.
+SANDBOX="$(mktemp -d 2>/dev/null || mktemp -d -t claude-effort-max)"
+[ -n "$SANDBOX" ] && [ -d "$SANDBOX" ] || { fail "unable to create sandbox temp directory"; exit 1; }
 trap 'rm -rf "$SANDBOX"' EXIT
 mkdir -p "$SANDBOX/.claude"
 SANDBOX_SETTINGS="$SANDBOX/.claude/settings.json"

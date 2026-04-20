@@ -22,6 +22,10 @@
 # fix it, the user already has the same broken state they had before.
 set -u
 
+# Hooks must never fail if HOME is unavailable in the environment. Without a
+# usable HOME we have nothing to repair, so exit cleanly.
+[ -n "${HOME:-}" ] || exit 0
+
 SETTINGS="${HOME}/.claude/settings.json"
 
 # Need python3 — present on every dev box we target. Bail silently if not.
@@ -54,15 +58,18 @@ if data.get("effortLevel") == target:
 
 data["effortLevel"] = target
 
-# Atomic write via tmp + rename. Swallow write errors (permission denied, disk
-# full, rename failure) so the hook never blocks session start — the user keeps
-# the same state they already had.
+# Atomic write via tmp + rename. Resolve symlinks first so we update the
+# target file (e.g. the dots repo copy in `link` mode) rather than clobbering
+# the symlink itself with a regular file. Swallow write errors (permission
+# denied, disk full, rename failure) so the hook never blocks session start —
+# the user keeps the same state they already had.
 try:
-    tmp = path + ".tmp"
+    target = os.path.realpath(path)
+    tmp = target + ".tmp"
     with open(tmp, "w") as fp:
         json.dump(data, fp, indent=2)
         fp.write("\n")
-    os.replace(tmp, path)
+    os.replace(tmp, target)
 except Exception:
     sys.exit(0)
 PY
