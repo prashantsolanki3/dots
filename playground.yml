@@ -13,15 +13,15 @@
     apt_retry_delay: 10
   handlers:
     - name: Restart sshd
-      service: name=sshd state=restarted
+      ansible.builtin.service: name=sshd state=restarted
       become: true
   pre_tasks:
     - name: Update System
       when: update_system == true
-      include_tasks: tasks/update_system.yml
+      ansible.builtin.include_tasks: tasks/update_system.yml
   tasks:
     - name: Install base system packages
-      package:
+      ansible.builtin.package:
         name: '{{ item }}'
         state: latest
       loop:
@@ -45,25 +45,25 @@
     - name:  Mount Network volumes
       when:
         - mounts is defined
-      include_tasks: tasks/mount_network_volumes.yml
+      ansible.builtin.include_tasks: tasks/mount_network_volumes.yml
 
     - name: Install Docker
-      include_tasks: tasks/install_docker.yml
+      ansible.builtin.include_tasks: tasks/install_docker.yml
 
     # Install user packages
     - name: Add HashiCorp GPG key
-      apt_key:
+      ansible.builtin.apt_key:
         url: https://apt.releases.hashicorp.com/gpg
         state: present
     - name: Add APT repositories
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: '{{ item }}'
         state: present
       loop:
         - deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
         - ppa:deadsnakes/ppa
     - name: Install dev packages
-      package:
+      ansible.builtin.package:
         name: '{{ item }}'
         state: latest
       loop:
@@ -86,7 +86,7 @@
       tags: ['dev_packages', 'packages']
 
     - name: Remove not-needed packages
-      package:
+      ansible.builtin.package:
         name: '{{ item }}'
         state: absent
       loop:
@@ -95,7 +95,7 @@
       become: true
 
     - name: Ensure user dot files
-      copy:
+      ansible.builtin.copy:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '0600'
@@ -112,7 +112,7 @@
       tags: ['user_dots', 'dots']
 
     - name: Ensure root dot files
-      copy:
+      ansible.builtin.copy:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '0600'
@@ -126,7 +126,7 @@
       tags: ['dots']
 
     - name: Ensure default directories in home
-      file:
+      ansible.builtin.file:
         path: '{{ item }}'
         state: directory
         mode: '0700'
@@ -140,7 +140,7 @@
       tags: ['dir-structure']
 
     - name: Ensure user files (from templates)
-      template:
+      ansible.builtin.template:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '0600'
@@ -151,7 +151,7 @@
 
     # Install python extra packages and ensure they are up to date.
     - name: Ensure pip3 packages
-      pip:
+      ansible.builtin.pip:
         name: '{{ item }}'
         executable: pip3
         state: latest
@@ -163,7 +163,7 @@
       become: true
 
     - name: Configure Git
-      include_tasks: tasks/configure_git.yml
+      ansible.builtin.include_tasks: tasks/configure_git.yml
 
     - name: Install Code Server
-      include_tasks: tasks/install_code_server.yml
+      ansible.builtin.include_tasks: tasks/install_code_server.yml

@@ -14,17 +14,17 @@
 
   handlers:
     - name: Restart sshd
-      service: name=sshd state=restarted
+      ansible.builtin.service: name=sshd state=restarted
     - name: reload systemctl
-      command: systemctl daemon-reload
+      ansible.builtin.command: systemctl daemon-reload
 
   pre_tasks:
     - name: Update System
       when: update_system == true
-      include_tasks: tasks/update_system.yml
+      ansible.builtin.include_tasks: tasks/update_system.yml
 
     - name: Install base system packages
-      package:
+      ansible.builtin.package:
         name: "{{ item }}"
         state: latest
       loop:
@@ -47,7 +47,7 @@
 
   tasks:
     - name: Ensure user dot files
-      copy:
+      ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
         mode: "0600"
@@ -65,11 +65,11 @@
       tags: ["user_dots", "dots"]
 
     - name: Configure Git
-      include_tasks: tasks/configure_git.yml
+      ansible.builtin.include_tasks: tasks/configure_git.yml
 
 
     - name: Ensure template files
-      template:
+      ansible.builtin.template:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '{{ item.mode }}'
@@ -81,4 +81,4 @@
     - name: Mount External Network volumes
       when:
         - mounts is defined
-      include_tasks: tasks/mount_network_volumes.yml
+      ansible.builtin.include_tasks: tasks/mount_network_volumes.yml

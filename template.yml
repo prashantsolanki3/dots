@@ -13,13 +13,13 @@
   gather_facts: true
   handlers:
     - name: Restart sshd
-      service: name=sshd state=restarted
+      ansible.builtin.service: name=sshd state=restarted
     - name: reload systemctl
-      command: systemctl daemon-reload
+      ansible.builtin.command: systemctl daemon-reload
 
   pre_tasks:
     - name: Install base system packages
-      package:
+      ansible.builtin.package:
         name: '{{ item }}'
         state: latest
       loop:
@@ -43,24 +43,24 @@
 
     - name: Split glusterfs mounts var
       when: glusterfs_mounts != None
-      set_fact:
+      ansible.builtin.set_fact:
         glusterfs_mounts_list: "{{ glusterfs_mounts.split(',') }}"
 
     - name: Split glusterfs home mounts var
       when: glusterfs_home_mounts != None
-      set_fact:
+      ansible.builtin.set_fact:
         glusterfs_home_mounts_list: "{{ glusterfs_home_mounts.split(',') }}"
 
     - name:  Mount Home glusterfs volumes
       when: glusterfs_home_mounts_list is defined
-      include_tasks: tasks/mount_home_glusterfs.yml
+      ansible.builtin.include_tasks: tasks/mount_home_glusterfs.yml
 
     - name:  Mount Other Glusterfs volumes
       when: glusterfs_mounts_list is defined
-      include_tasks: tasks/mount_glusterfs.yml
+      ansible.builtin.include_tasks: tasks/mount_glusterfs.yml
 
     - name: Install Docker
-      include_tasks: tasks/install_docker.yml
+      ansible.builtin.include_tasks: tasks/install_docker.yml
 
   # roles:
   #   - role: monolithprojects.github_actions_runner
@@ -68,15 +68,15 @@
   tasks:
     - name: Split Runner Github Repos
       when: github_repos != None
-      set_fact:
+      ansible.builtin.set_fact:
         github_repos_list: "{{ github_repos.split(',') }}"
 
     - name: Create Docker Github Runner
       when: github_repos_list is defined
-      include_tasks: tasks/create_docker_github_runner.yml
+      ansible.builtin.include_tasks: tasks/create_docker_github_runner.yml
 
     - name: Ensure user dot files
-      copy:
+      ansible.builtin.copy:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '0600'
@@ -91,7 +91,7 @@
       tags: ['user_dots', 'dots']
 
     - name: Ensure root dot files
-      copy:
+      ansible.builtin.copy:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '0600'
@@ -105,7 +105,7 @@
       tags: ['dots']
 
     - name: Ensure default directories in home
-      file:
+      ansible.builtin.file:
         path: '{{ item }}'
         state: directory
         mode: '0700'
@@ -115,7 +115,7 @@
         - '/home/{{ host_username }}/.ssh'
 
     - name: Ensure user files (from templates)
-      template:
+      ansible.builtin.template:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '0600'

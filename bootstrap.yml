@@ -14,17 +14,17 @@
 
   handlers:
     - name: Restart sshd
-      service: name=sshd state=restarted
+      ansible.builtin.service: name=sshd state=restarted
     - name: reload systemctl
-      command: systemctl daemon-reload
+      ansible.builtin.command: systemctl daemon-reload
 
   pre_tasks:
     - name: Update System
       when: update_system == true
-      include_tasks: tasks/update_system.yml
+      ansible.builtin.include_tasks: tasks/update_system.yml
 
     - name: Install base system packages
-      package:
+      ansible.builtin.package:
         name: '{{ item }}'
         state: latest
       loop:
@@ -37,7 +37,7 @@
       delay: '{{ apt_retry_delay }}'
 
     - name: Ensure template files
-      template:
+      ansible.builtin.template:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '{{ item.mode }}'
@@ -49,16 +49,16 @@
     - name: Mount External Network volumes
       when:
         - mounts is defined
-      include_tasks: tasks/mount_network_volumes.yml
+      ansible.builtin.include_tasks: tasks/mount_network_volumes.yml
 
     - name: Install Docker
-      include_tasks: tasks/install_docker.yml
+      ansible.builtin.include_tasks: tasks/install_docker.yml
     - name: Ensure ssh directory exists
-      file:
+      ansible.builtin.file:
         path: ${HOME}/.ssh
         state: directory
     - name: Ensure user files
-      copy:
+      ansible.builtin.copy:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
         mode: '0600'
@@ -72,6 +72,6 @@
   tasks:
     - name: Create Docker Github Runner
       when: github_repos != None
-      include_tasks: tasks/create_docker_github_runner.yml
+      ansible.builtin.include_tasks: tasks/create_docker_github_runner.yml
       vars:
         github_repos_list: "{{ github_repos.split(',') }}"

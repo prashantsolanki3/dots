@@ -1,22 +1,22 @@
 ---
 - name: Download Code Server
   become: true
-  get_url:
+  ansible.builtin.get_url:
     url: https://code-server.dev/install.sh
     dest: /tmp/install-code-server.sh
     mode: 'a+x'
 
 - name: Install Code Server
   become: true
-  command: bash +x /tmp/install-code-server.sh
+  ansible.builtin.command: bash +x /tmp/install-code-server.sh
 
 - name: Check code server config file
-  stat:
+  ansible.builtin.stat:
     path: /home/{{ host_username }}/.config/code-server/config.yaml
   register: code_server_config
 
 - name: Configure Code Server - Bind Addr
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /home/{{ host_username }}/.config/code-server/config.yaml
     regexp: '^bind-addr:'
     line: 'bind-addr: 0.0.0.0:8080'
@@ -25,7 +25,7 @@
 
 - name: Enable Code Server Service
   become: true
-  systemd:
+  ansible.builtin.systemd:
     name: code-server@{{ host_username }}
     enabled: yes
     state: started

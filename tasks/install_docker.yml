@@ -1,5 +1,5 @@
 - name: Install dependencies
-  apt:
+  ansible.builtin.apt:
     name:
       - apt-transport-https
       - ca-certificates
@@ -14,35 +14,35 @@
   become: true
 
 - name: Add Ubuntu Docker GPG key
-  apt_key:
+  ansible.builtin.apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
   become: true
   when: ansible_distribution == 'Ubuntu'
 
 - name: Add Ubuntu Docker APT repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
     state: present
   become: true
   when: ansible_distribution == 'Ubuntu'
 
 - name: Add Debian Docker GPG key
-  apt_key:
+  ansible.builtin.apt_key:
     url: https://download.docker.com/linux/debian/gpg
     state: present
   become: true
   when: ansible_distribution == 'Debian'
 
 - name: Add Debian Docker APT repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable
     state: present
   become: true
   when: ansible_distribution == 'Debian'
 
 - name: Install Docker
-  apt:
+  ansible.builtin.apt:
     name: '{{ item }}'
     state: present
   loop:
@@ -58,14 +58,14 @@
   become: true
 
 - name: Add user to Docker group
-  user:
+  ansible.builtin.user:
     name: "{{ host_username }}"
     append: yes
     groups: docker
   become: true
 
 - name: Install Docker Compose
-  get_url:
+  ansible.builtin.get_url:
     url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
     dest: /usr/local/bin/docker-compose
     mode: 'a+x'
