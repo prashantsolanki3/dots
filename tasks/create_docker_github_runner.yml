@@ -10,7 +10,7 @@
   ansible.builtin.file:
     path: "/mnt/env/{{ item.name }}"
     state: directory
-    mode: '0600'
+    mode: '0700'
     owner: '{{ default_volume_owner }}'
     group: '{{ default_volume_owner }}'
   with_items: "{{ github_runner_repos }}"
@@ -19,7 +19,7 @@
   ansible.builtin.file:
     path: "/mnt/env/{{ item.name }}/state"
     state: directory
-    mode: '0600'
+    mode: '0700'
     owner: '{{ default_volume_owner }}'
     group: '{{ default_volume_owner }}'
   with_items: "{{ github_runner_repos }}"
