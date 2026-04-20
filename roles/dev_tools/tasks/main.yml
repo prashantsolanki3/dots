@@ -3,7 +3,7 @@
 # Each tool can be individually toggled via install_<tool> variables.
 # All tasks in this role use apt and are Debian/Ubuntu-only.
 
-- name: dev_tools — Debian/Ubuntu only
+- name: Dev_tools - install on Debian/Ubuntu only
   when: ansible_facts['os_family'] == "Debian"
   block:
     # ── GitHub CLI (gh) ──────────────────────────────────────────────────────
@@ -29,7 +29,7 @@
       ansible.builtin.apt:
         name: gh
         state: present
-        update_cache: yes
+        update_cache: true
       when: install_gh | default(true)
 
     # ── Node.js (via NodeSource) ─────────────────────────────────────────────
@@ -46,7 +46,7 @@
       ansible.builtin.apt:
         name: nodejs
         state: present
-        update_cache: yes
+        update_cache: true
       when: install_node | default(true)
 
     # ── pnpm ─────────────────────────────────────────────────────────────────
@@ -97,14 +97,14 @@
       ansible.builtin.apt:
         name: terraform
         state: present
-        update_cache: yes
+        update_cache: true
       when: install_terraform | default(true)
 
     # ── Gitleaks ─────────────────────────────────────────────────────────────
     - name: Get latest Gitleaks release version
       ansible.builtin.uri:
         url: https://api.github.com/repos/gitleaks/gitleaks/releases/latest
-        return_content: yes
+        return_content: true
       register: gitleaks_release
       when: install_gitleaks | default(true)
 
@@ -144,7 +144,7 @@
       ansible.builtin.apt:
         name: azure-cli
         state: present
-        update_cache: yes
+        update_cache: true
       when: install_az_cli | default(true)
 
     # ── Python 3.12 (for smart-agents-backend) ──────────────────────────────
@@ -163,7 +163,7 @@
           - python3.12-venv
           - python3.12-dev
         state: present
-        update_cache: yes
+        update_cache: true
       when: install_python312 | default(true)
 
     # ── PostgreSQL client ────────────────────────────────────────────────────

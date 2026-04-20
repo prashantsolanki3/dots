@@ -9,3 +9,6 @@ env.yml
 
 # Claude Code session data
 .claude/
+
+# Ansible Galaxy role cache (populated by `ansible-galaxy install`)
+.ansible/
