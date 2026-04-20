@@ -25,22 +25,15 @@
     - ansible_facts['os_family'] == "Darwin"
     - not claude_bin_mac.stat.exists
 
-# ── Linux / WSL2: install claude via npm if missing ─────────────────────────
-- name: "[Linux] Check that claude CLI binary is on PATH"
-  ansible.builtin.command: which claude
-  register: claude_bin_linux
-  changed_when: false
-  failed_when: false
-  when: ansible_facts['os_family'] == "Debian"
-
-- name: "[Linux] Install Claude Code via npm"
+# ── Linux / WSL2: always install/upgrade Claude Code to latest via npm ─────
+- name: "[Linux] Install/upgrade Claude Code to latest via npm"
   become: true
-  ansible.builtin.command: npm install -g @anthropic-ai/claude-code
-  args:
-    creates: /usr/bin/claude
-  when:
-    - ansible_facts['os_family'] == "Debian"
-    - claude_bin_linux.rc != 0
+  ansible.builtin.command: npm install -g @anthropic-ai/claude-code@latest
+  register: claude_npm_install
+  # Only report changed on actual version changes — npm emits "changed N packages"
+  # even on idempotent re-runs, so match on added/removed/updated instead.
+  changed_when: "'added' in claude_npm_install.stdout or 'removed' in claude_npm_install.stdout or 'updated' in claude_npm_install.stdout"
+  when: ansible_facts['os_family'] == "Debian"
 
 # ── Create config directories ───────────────────────────────────────────────
 - name: Ensure ~/.claude/agents directory exists
@@ -274,3 +267,17 @@
   when: claude_custom_plugins | default([]) | length > 0
   environment:
     HOME: "{{ claude_home }}"
+
+# ── Docker-mode: deploy container entrypoint ─────────────────────────────────
+# The entrypoint invokes `ansible-playbook sync-claude.yml` on every container
+# start, re-running the idempotent tasks above against the mounted ~/.claude
+# volume so dots updates propagate without a rebuild.
+- name: "[Docker] Deploy container entrypoint script"
+  become: true
+  ansible.builtin.copy:
+    src: entrypoint.sh
+    dest: /usr/local/bin/entrypoint.sh
+    mode: '0755'
+    owner: root
+    group: root
+  when: claude_config_mode | default('link') == 'copy'
