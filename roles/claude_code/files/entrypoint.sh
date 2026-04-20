@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Container entrypoint. Managed by dots/roles/claude_code — do not edit
 # in-container; changes will be overwritten on next `ansible-playbook dev.yml`.
 #
@@ -7,24 +7,42 @@
 # rebuilding the image.
 
 # ── Docker socket access (host gid varies — dev-only convenience) ────────
-if [ -S /var/run/docker.sock ]; then
+# World-writable socket grants any container process control over the host
+# Docker daemon. Opt-in: set CLAUDE_CODE_ALLOW_WORLD_WRITABLE_DOCKER_SOCK=1.
+if [ -S /var/run/docker.sock ] && [ "${CLAUDE_CODE_ALLOW_WORLD_WRITABLE_DOCKER_SOCK:-0}" = "1" ]; then
   sudo chmod a+rw /var/run/docker.sock 2>/dev/null || true
 fi
 
-# ── Sync Claude state via dots Ansible ───────────────────────────────────
+# ── Re-run dots Ansible against the live container ──────────────────────
+# The idempotent roles bring ~/.claude and the container's tool state back
+# in sync with whatever dots has shipped (config changes, new plugins).
 if [ -d /opt/dots ]; then
-  ansible-playbook /opt/dots/sync-claude.yml \
+  set -o pipefail
+  ansible-playbook /opt/dots/dev.yml \
     --connection=local -i "localhost," \
     -e "ansible_python_interpreter=/usr/bin/python3" \
     -e "host_username=$(whoami)" \
+    -e "docker_install_engine=false" \
+    -e "ssh_enabled=false" \
+    -e "update_system=false" \
     -e "claude_config_mode=copy" 2>&1 | \
-    grep -vE '^(PLAY|TASK|ok:|skipping:|  to retry|$)' || true
+    grep -vE '^(PLAY|TASK|ok:|skipping:|  to retry|$)'
+  sync_status=${PIPESTATUS[0]}
+  set +o pipefail
+  if [ "$sync_status" -ne 0 ]; then
+    echo "entrypoint: dots sync failed (exit $sync_status); continuing with shell" >&2
+  fi
 fi
 
 # ── Git safe.directory for mounted workspace repos ───────────────────────
+# Check before adding to avoid growing ~/.gitconfig on every container start.
 for repo in /workspace/*/; do
   repo="${repo%/}"
-  [ -d "$repo/.git" ] && git config --global --add safe.directory "$repo" 2>/dev/null
+  if [ -d "$repo/.git" ]; then
+    if ! git config --global --get-all safe.directory 2>/dev/null | grep -Fxq "$repo"; then
+      git config --global --add safe.directory "$repo" 2>/dev/null
+    fi
+  fi
 done
 git config --global user.name "${GIT_USER_NAME:-Smart Agents Dev}"
 git config --global user.email "${GIT_EMAIL:-dev@smartagents.local}"

@@ -28,11 +28,10 @@
 # ── Linux / WSL2: always install/upgrade Claude Code to latest via npm ─────
 - name: "[Linux] Install/upgrade Claude Code to latest via npm"
   become: true
-  ansible.builtin.command: npm install -g @anthropic-ai/claude-code@latest
-  register: claude_npm_install
-  # Only report changed on actual version changes — npm emits "changed N packages"
-  # even on idempotent re-runs, so match on added/removed/updated instead.
-  changed_when: "'added' in claude_npm_install.stdout or 'removed' in claude_npm_install.stdout or 'updated' in claude_npm_install.stdout"
+  community.general.npm:
+    name: "@anthropic-ai/claude-code"
+    global: true
+    state: latest
   when: ansible_facts['os_family'] == "Debian"
 
 # ── Create config directories ───────────────────────────────────────────────
