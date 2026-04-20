@@ -1,34 +1,47 @@
 name: Ansible-CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-#     runs-on: ubuntu-latest
-    runs-on: self-hosted
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  lint:
+    name: ansible-lint
+    runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-      - name: Set safe directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
-      - name: Ansible Lint
-        uses: ansible/ansible-lint-action@v6.8.2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          path: --show-relpath
+          python-version: "3.12"
+      - name: Install ansible + ansible-lint
+        run: pip install ansible ansible-lint
+      - name: Install required collections
+        run: ansible-galaxy collection install community.general
+      - name: Ansible Lint
+        run: ansible-lint --show-relpath
 
-
-
-
+  syntax-check:
+    name: syntax-check (${{ matrix.playbook }} on ${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            playbook: dev.yml
+          - os: macos-latest
+            playbook: mac.yml
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ansible
+        run: pip install ansible
+      - name: Install required collections
+        run: ansible-galaxy collection install community.general
+      - name: Syntax check ${{ matrix.playbook }}
+        run: ansible-playbook --syntax-check ${{ matrix.playbook }} -i "localhost," -e "host_username=$(whoami)"
