@@ -208,7 +208,7 @@
     src: "{{ item }}"
     dest: "{{ claude_home }}/.claude/hooks/{{ item | basename }}"
     state: link
-    force: yes
+    force: true
   loop: "{{ hook_files }}"
   when: claude_config_mode | default('link') == 'link'
 
