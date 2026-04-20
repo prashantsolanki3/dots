@@ -12,11 +12,6 @@ exclude_paths:
   # Existing ignore entries from the repo's conventions.
   - .cache/
   - site.retry
-  # `tasks/mount_glusterfs.yml` is referenced only from the deprecated
-  # template.yml (header says "DEPRECATED: prefer dev.yml"). The file was
-  # removed when roles/ was introduced. load-failure is unskippable, so we
-  # exclude the (virtual) missing path instead.
-  - tasks/mount_glusterfs.yml
 
 skip_list:
   # Variables in this repo use domain-oriented names (e.g. `host_username`,
