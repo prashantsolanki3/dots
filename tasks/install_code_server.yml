@@ -1,5 +1,5 @@
 ---
-- name: Download Code Server 
+- name: Download Code Server
   become: true
   get_url:
     url: https://code-server.dev/install.sh

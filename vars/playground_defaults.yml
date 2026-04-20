@@ -9,32 +9,32 @@ default_cifs_credentials: "/.cifscredentials"
 git_user_name: "Prashant Solanki"
 git_email: "solankisrp2@gmail.com"
 mounts:
-  - { 
+  - {
       type: 'glusterfs',
-      name: 'home_playground', 
-      mount_path: '/home', 
+      name: 'home_playground',
+      mount_path: '/home',
       server: "{{ default_glusterfs_server }}",
-      owner: "{{ default_glusterfs_volume_owner }}", 
+      owner: "{{ default_glusterfs_volume_owner }}",
       group: "{{ default_glusterfs_volume_group }}",
       config_state: present,
       mount: true,
       home_mount: true
     }
-  - { 
+  - {
       type: 'glusterfs',
-      name: 'apps_playground', 
-      mount_path: '/etc/apps', 
+      name: 'apps_playground',
+      mount_path: '/etc/apps',
       server: "{{ default_glusterfs_server }}",
-      owner: "{{ default_glusterfs_volume_owner }}", 
+      owner: "{{ default_glusterfs_volume_owner }}",
       group: "{{ default_glusterfs_volume_group }}",
       config_state: present,
       mount: true,
       home_mount: false
     }
-  - { 
+  - {
       type: 'cifs',
-      name: 'zfs-slow-media', 
-      mount_path: '/mnt/zfs-slow-media', 
+      name: 'zfs-slow-media',
+      mount_path: '/mnt/zfs-slow-media',
       server: "{{ default_glusterfs_server }}",
       mount: true
     }

@@ -9,7 +9,7 @@
     - vars/playground_defaults.yml
   become: true
   vars:
-    apt_retries: 15 
+    apt_retries: 15
     apt_retry_delay: 10
   handlers:
     - name: Restart sshd
@@ -43,7 +43,7 @@
 
 
     - name:  Mount Network volumes
-      when: 
+      when:
         - mounts is defined
       include_tasks: tasks/mount_network_volumes.yml
 
@@ -59,7 +59,7 @@
       apt_repository:
         repo: '{{item}}'
         state: present
-      loop: 
+      loop:
         - deb [arch=amd64] https://apt.releases.hashicorp.com {{ansible_distribution_release}} main
         - ppa:deadsnakes/ppa
     - name: Install dev packages
@@ -101,7 +101,7 @@
         mode: '0600'
         owner: '{{host_username}}'
         group: '{{host_username}}'
-      # Add user dot files here 
+      # Add user dot files here
       loop:
         - { src: dots/.wgetrc, dest: '/home/{{host_username}}/.wgetrc' }
         - { src: dots/.gitignore, dest: '/home/{{host_username}}/.gitignore' }

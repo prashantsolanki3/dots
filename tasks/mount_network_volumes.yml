@@ -24,7 +24,7 @@
     path: "/etc/fstab"
     line: "{{ item.server | default(default_glusterfs_server) }}:/{{ item.name }} {{ item.mount_path }} glusterfs defaults,_netdev 0 0"
     state: "{{ item.config_state | default('present') }}"
-  when: 
+  when:
     - item.type == "glusterfs"
   with_items: "{{ mounts }}"
   tags: ['glusterfs', 'fstab']
@@ -34,7 +34,7 @@
     path: "/etc/fstab"
     line : "//{{ item.server | default(default_cifs_server) }}/{{ item.name }} {{ item.mount_path }} cifs vers=3.0,credentials={{ item.credentials | default('/home/'~ansible_user~'/.cifscredentials') }},file_mode={{ item.file_mode | default('0755') }},dir_mode={{ item.dir_mode | default('0755') }},uid={{ item.owner | default(default_volume_owner) }},gid={{ item.group | default(default_volume_group) }},nofail 0 0"
     state: "{{ item.config_state | default('present') }}"
-  when: 
+  when:
     - item.type == "cifs"
   with_items: "{{ mounts }}"
   tags: ['cifs', 'fstab']
@@ -44,7 +44,7 @@
     path: "/etc/fstab"
     line: "{{ item.name }} {{ item.mount_path }} fuse.s3fs _netdev,allow_other,use_cache=/tmp,url=https://s3.{{item.region|default(default_aws_region)}}.amazonaws.com,uid={{ item.owner | default(default_volume_owner) }},gid={{ item.group | default(default_volume_group) }} 0 0"
     state: "{{ item.config_state | default('present') }}"
-  when: 
+  when:
     - item.type == "s3fs"
   with_items: "{{ mounts }}"
   tags: ['s3fs', 'fstab']
@@ -59,8 +59,8 @@
 
 # - name: Create Home User directory
 #   with_items: "{{ mounts }}"
-#   when: 
-#     - item.home_mount is defined       
+#   when:
+#     - item.home_mount is defined
 #     - item.home_mount == true
 #   file:
 #     path: "{{ item.mount_path }}/{{ ansible_user | default('ubuntu') }}"

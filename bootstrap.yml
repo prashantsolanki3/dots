@@ -9,7 +9,7 @@
   become: true
   gather_facts: true
   vars:
-    apt_retries: 15 
+    apt_retries: 15
     apt_retry_delay: 10
 
   handlers:
@@ -22,7 +22,7 @@
     - name: Update System
       when: update_system == true
       include_tasks: tasks/update_system.yml
-    
+
     - name: Install base system packages
       package:
         name: '{{item}}'
@@ -47,7 +47,7 @@
         - { src: aws/credentials, dest: '/etc/passwd-s3fs', mode: '0600' }
 
     - name: Mount External Network volumes
-      when: 
+      when:
         - mounts is defined
       include_tasks: tasks/mount_network_volumes.yml
 
@@ -64,11 +64,11 @@
         mode: '0600'
         owner: '{{ansible_user}}'
         group: '{{ansible_user}}'
-      # Add user dot files here 
+      # Add user dot files here
       loop:
         - { src: '/root/.ssh/id_rsa', dest: '${HOME}/.ssh/id_rsa' }
         - { src: '/root/.ssh/id_rsa.pub', dest: '${HOME}/.ssh/id_rsa.pub' }
-    
+
   tasks:
     - name: Create Docker Github Runner
       when: github_repos != None

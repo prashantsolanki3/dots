@@ -10,7 +10,7 @@
   become: true
   gather_facts: true
   vars:
-    apt_retries: 15 
+    apt_retries: 15
     apt_retry_delay: 20
 
   handlers:
@@ -23,7 +23,7 @@
     - name: Update System
       when: update_system == true
       include_tasks: tasks/update_system.yml
-    
+
     - name: Install base system packages
       package:
         name: '{{item}}'
@@ -57,15 +57,15 @@
         enabled: yes
 
     - name: Mount External Network volumes
-      when: 
+      when:
         - mounts is defined
       include_tasks: tasks/mount_network_volumes.yml
-    
+
     - name: Configure Store volumes
-      when: 
-        - volumes is defined       
+      when:
+        - volumes is defined
       include_tasks: tasks/configure_volumes.yml
-  
+
   tasks:
     - name: Ensure user dot files
       copy:
@@ -113,4 +113,3 @@
         group: '{{host_username}}'
       loop:
         - { src: dots/authorized_keys, dest: '/home/{{host_username}}/.ssh/authorized_keys' }
-   
