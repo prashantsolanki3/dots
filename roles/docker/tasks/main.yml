@@ -1,7 +1,21 @@
 ---
-# roles/docker - Install Docker CE with Compose plugin (Ubuntu/Debian)
+# roles/docker - Install Docker CLI and/or Engine (Ubuntu/Debian)
+#
+# Granular install via two toggles:
+#   docker_install_cli    → docker-ce-cli + buildx + compose plugin
+#   docker_install_engine → docker-ce + containerd.io (host daemon)
+#
+# Skip the role entirely with `docker_enabled: false`.
 
-- name: Install Docker dependencies
+- name: Validate at least one docker component is selected
+  ansible.builtin.assert:
+    that:
+      - docker_install_cli | bool or docker_install_engine | bool
+    fail_msg: >-
+      docker role enabled but both docker_install_cli and
+      docker_install_engine are false — nothing to install.
+
+- name: Install Docker apt prerequisites
   become: true
   ansible.builtin.apt:
     name:
@@ -44,35 +58,62 @@
     state: present
   when: ansible_distribution == 'Debian'
 
-- name: Install Docker CE and plugins
+- name: Build Docker package list from toggles
+  ansible.builtin.set_fact:
+    docker_packages: >-
+      {{
+        (['docker-ce-cli', 'docker-buildx-plugin', 'docker-compose-plugin']
+           if docker_install_cli | bool else [])
+        +
+        (['docker-ce', 'containerd.io']
+           if docker_install_engine | bool else [])
+      }}
+
+- name: Install selected Docker packages
   become: true
   ansible.builtin.apt:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
+    name: "{{ docker_packages }}"
     state: present
   register: result
   until: result is not failed
   retries: "{{ apt_retries }}"
   delay: "{{ apt_retry_delay }}"
 
+# The `docker` system group is created by the engine package. Skip group
+# membership when only the CLI is installed (e.g. DinD-via-socket dev images
+# where socket access is granted at runtime instead).
 - name: Add user to Docker group
   become: true
   ansible.builtin.user:
     name: "{{ host_username }}"
     append: true
     groups: docker
+  when: docker_install_engine | bool
+
+- name: Verify docker CLI is available
+  ansible.builtin.command: docker --version
+  register: docker_cli_check
+  changed_when: false
+  failed_when: false
+  when: docker_install_cli | bool
+
+- name: Show docker CLI version
+  ansible.builtin.debug:
+    msg: "{{ docker_cli_check.stdout }}"
+  when:
+    - docker_install_cli | bool
+    - docker_cli_check.rc | default(1) == 0
 
 - name: Verify docker compose plugin is available
   ansible.builtin.command: docker compose version
   register: docker_compose_check
   changed_when: false
   failed_when: false
+  when: docker_install_cli | bool
 
 - name: Show docker compose version
   ansible.builtin.debug:
     msg: "{{ docker_compose_check.stdout }}"
-  when: docker_compose_check.rc == 0
+  when:
+    - docker_install_cli | bool
+    - docker_compose_check.rc | default(1) == 0
