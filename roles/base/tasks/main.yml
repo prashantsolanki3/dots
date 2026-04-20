@@ -9,7 +9,7 @@
   until: result is not failed
   retries: "{{ apt_retries }}"
   delay: "{{ apt_retry_delay }}"
-  when: update_system | default(true)
+  when: update_system | default(true) | bool
 
 - name: Upgrade packages
   become: true
@@ -20,7 +20,7 @@
   until: result is not failed
   retries: "{{ apt_retries }}"
   delay: "{{ apt_retry_delay }}"
-  when: update_system | default(true)
+  when: update_system | default(true) | bool
 
 - name: Install base system packages
   become: true
