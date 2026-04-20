@@ -14,7 +14,7 @@ name: Ansible-Provisioning-Test
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
       - 'roles/**'
       - 'dev.yml'
