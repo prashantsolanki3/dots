@@ -50,8 +50,14 @@ jobs:
       - name: Install ansible
         run: pip install ansible
 
-      - name: Install required collections
-        run: ansible-galaxy collection install community.general
+      - name: Install Galaxy dependencies (roles + collections)
+        # Install both the requirements.yml Galaxy roles and the
+        # community.general collection. This path is listed in the PR
+        # trigger filter above, so installing ensures changes to
+        # requirements.yml are actually validated end-to-end.
+        run: |
+          ansible-galaxy role install -r requirements.yml --force
+          ansible-galaxy collection install community.general
 
       - name: Build extra-vars file (typed bools for ansible-core 2.20 strict conditionals)
         # Passing `-e foo=false` on the CLI coerces the value to the string
@@ -86,12 +92,16 @@ jobs:
 
       - name: Run ${{ matrix.playbook }} (second pass — idempotence check)
         id: second_run
+        # Observed baseline on a clean runner: changed=5. Sources are
+        # intentionally non-idempotent tasks in the claude_code role:
+        #   - [Linux] Install/upgrade Claude Code via npm (state: latest)
+        #   - Install npm packages for skills (changed_when: true, loop)
+        #   - Merge MCP server definitions (shell: ... with no changed_when)
+        # plus occasional apt_repository re-registration when NodeSource
+        # updates upstream. Threshold=8 gives one or two slots of headroom
+        # before genuine regressions (missing creates:, duplicate apt repo
+        # adds, new shell tasks without changed_when) trip the check.
         run: |
-          # A well-behaved playbook should report changed=0 on re-run. We
-          # allow a small threshold because shell installers with `creates:`
-          # guards and `claude plugin install` tasks (which set
-          # `changed_when: false` but still execute) may report a few
-          # changes. Tighten this once observed baseline is known.
           set -o pipefail
           ansible-playbook ${{ matrix.playbook }} \
             -i "localhost," \
@@ -100,17 +110,13 @@ jobs:
             | tee /tmp/second_run.log
 
           CHANGED=$(grep -E '^localhost' /tmp/second_run.log | grep -oE 'changed=[0-9]+' | head -1 | cut -d= -f2)
-          echo "Idempotence check: changed=${CHANGED} on second run"
-          # Observed baseline: changed=5 on re-run, driven by intentionally
-          # non-idempotent tasks — `npm state: latest` for Claude Code, the
-          # MCP-merge shell task (no changed_when), and the npm global
-          # install loop (changed_when: true). Threshold=8 gives headroom
-          # for one or two future additions of the same class without
-          # failing; tighten once those cases are refactored.
           THRESHOLD=8
+          echo "Idempotence check: changed=${CHANGED} on second run (threshold=${THRESHOLD})"
           if [ -z "$CHANGED" ]; then
-            echo "::warning::Could not parse changed= from PLAY RECAP; skipping idempotence assertion"
-            exit 0
+            # Fail loud — silently skipping would mask ansible format
+            # changes, stdout callback swaps, or a broken playbook run.
+            echo "::error::Could not parse changed= from PLAY RECAP — idempotence check is unverified. Inspect the log above."
+            exit 1
           fi
           if [ "$CHANGED" -gt "$THRESHOLD" ]; then
             echo "::error::Idempotence regression: ${CHANGED} tasks changed on second run (threshold=${THRESHOLD})"
