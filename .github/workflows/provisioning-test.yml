@@ -59,12 +59,19 @@ jobs:
         # ansible-core 2.20's tightened conditional evaluation. A JSON
         # extra-vars file preserves booleans as actual booleans.
         run: |
+          # install_az_cli=false: ubuntu-latest runners ship with Azure CLI
+          # already configured via /etc/apt/keyrings/microsoft.gpg; re-adding
+          # the repo under a different keyring path triggers
+          #   "Conflicting values set for option Signed-By"
+          # from APT. Skipping the install in CI preserves coverage of every
+          # other dev_tools sub-task without masking real role bugs.
           cat > /tmp/ci-vars.json <<JSON
           {
             "host_username": "$(whoami)",
             "claude_config_mode": "copy",
             "ssh_enabled": false,
-            "update_system": false
+            "update_system": false,
+            "install_az_cli": false
           }
           JSON
           cat /tmp/ci-vars.json
