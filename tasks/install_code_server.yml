@@ -21,7 +21,7 @@
     regexp: '^bind-addr:'
     line: 'bind-addr: 0.0.0.0:8080'
     state: present
-  when: code_server_config.stat.exists == True
+  when: code_server_config.stat.exists
 
 - name: Enable Code Server Service
   become: true

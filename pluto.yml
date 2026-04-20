@@ -15,12 +15,12 @@
   handlers:
     - name: Restart sshd
       ansible.builtin.service: name=sshd state=restarted
-    - name: reload systemctl
+    - name: Reload systemctl
       ansible.builtin.command: systemctl daemon-reload
 
   pre_tasks:
     - name: Update System
-      when: update_system == true
+      when: update_system
       ansible.builtin.include_tasks: tasks/update_system.yml
 
     - name: Install base system packages

@@ -17,7 +17,7 @@
       become: true
   pre_tasks:
     - name: Update System
-      when: update_system == true
+      when: update_system
       ansible.builtin.include_tasks: tasks/update_system.yml
   tasks:
     - name: Install base system packages

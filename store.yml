@@ -16,12 +16,12 @@
   handlers:
     - name: Restart sshd
       ansible.builtin.service: name=sshd state=restarted
-    - name: reload systemctl
+    - name: Reload systemctl
       ansible.builtin.command: systemctl daemon-reload
 
   pre_tasks:
     - name: Update System
-      when: update_system == true
+      when: update_system
       ansible.builtin.include_tasks: tasks/update_system.yml
 
     - name: Install base system packages
@@ -50,7 +50,7 @@
       delay: '{{ apt_retry_delay }}'
 
     - name: Start and enable GlusterFS server service
-      when: enable_glusterfs == true
+      when: enable_glusterfs
       ansible.builtin.service:
         name: glusterd
         state: started

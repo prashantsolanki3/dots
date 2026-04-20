@@ -3,7 +3,7 @@
 # Each tool can be individually toggled via install_<tool> variables.
 # All tasks in this role use apt and are Debian/Ubuntu-only.
 
-- name: dev_tools — Debian/Ubuntu only
+- name: Dev_tools - install on Debian/Ubuntu only
   when: ansible_facts['os_family'] == "Debian"
   block:
     # ── GitHub CLI (gh) ──────────────────────────────────────────────────────

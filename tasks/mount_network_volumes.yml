@@ -51,7 +51,7 @@
 
 - name: Mount Volumes
   ansible.builtin.command: mount {{ item.mount_path }}
-  when: item.mount == true
+  when: item.mount
   run_once: true
   ignore_errors: true
   with_items: "{{ mounts }}"

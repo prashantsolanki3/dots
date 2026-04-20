@@ -24,7 +24,7 @@
   become: true
   tags: ['dir-structure', 'glusterfs']
 
-- name: mount all
+- name: Mount all
   ansible.builtin.command: mount -a
   become: true
   tags: ['dir-structure', 'glusterfs']
