@@ -53,36 +53,45 @@ jobs:
       - name: Install required collections
         run: ansible-galaxy collection install community.general
 
+      - name: Build extra-vars file (typed bools for ansible-core 2.20 strict conditionals)
+        # Passing `-e foo=false` on the CLI coerces the value to the string
+        # "false", which some role `when:` clauses interpret as truthy under
+        # ansible-core 2.20's tightened conditional evaluation. A JSON
+        # extra-vars file preserves booleans as actual booleans.
+        run: |
+          cat > /tmp/ci-vars.json <<JSON
+          {
+            "host_username": "$(whoami)",
+            "claude_config_mode": "copy",
+            "ssh_enabled": false,
+            "update_system": false
+          }
+          JSON
+          cat /tmp/ci-vars.json
+
       - name: Run ${{ matrix.playbook }} (first pass — provisioning)
         id: first_run
         run: |
           ansible-playbook ${{ matrix.playbook }} \
             -i "localhost," \
             --connection=local \
-            -e "host_username=$(whoami)" \
-            -e "claude_config_mode=copy" \
-            -e "ssh_enabled=false" \
-            -e "update_system=false"
+            -e "@/tmp/ci-vars.json"
 
       - name: Run ${{ matrix.playbook }} (second pass — idempotence check)
         id: second_run
         run: |
-          # Capture the PLAY RECAP summary. A well-behaved playbook should
-          # report changed=0 on the second run. We allow a small threshold
-          # because a handful of tasks (e.g., `claude plugin install` which
-          # uses `changed_when: false` but is reinvoked, or shell installers
-          # with `creates:` guards) may intermittently report changes.
+          # A well-behaved playbook should report changed=0 on re-run. We
+          # allow a small threshold because shell installers with `creates:`
+          # guards and `claude plugin install` tasks (which set
+          # `changed_when: false` but still execute) may report a few
+          # changes. Tighten this once observed baseline is known.
           set -o pipefail
           ansible-playbook ${{ matrix.playbook }} \
             -i "localhost," \
             --connection=local \
-            -e "host_username=$(whoami)" \
-            -e "claude_config_mode=copy" \
-            -e "ssh_enabled=false" \
-            -e "update_system=false" \
+            -e "@/tmp/ci-vars.json" \
             | tee /tmp/second_run.log
 
-          # Extract "changed=N" from PLAY RECAP line for localhost.
           CHANGED=$(grep -E '^localhost' /tmp/second_run.log | grep -oE 'changed=[0-9]+' | head -1 | cut -d= -f2)
           echo "Idempotence check: changed=${CHANGED} on second run"
           THRESHOLD=5
