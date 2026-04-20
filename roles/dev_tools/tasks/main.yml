@@ -123,18 +123,31 @@
         - gitleaks_release is succeeded
 
     # ── Azure CLI ────────────────────────────────────────────────────────────
+    # Keyring lives at /etc/apt/keyrings/microsoft.gpg to match the upstream
+    # Microsoft APT convention used by the pre-installed Azure CLI package on
+    # GitHub-hosted Ubuntu runners. A distinct path here collides with the
+    # pre-existing repo definition and APT fails with "Conflicting values
+    # set for option Signed-By" for packages.microsoft.com.
+    - name: Ensure /etc/apt/keyrings directory exists
+      become: true
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      when: install_az_cli | default(true) | bool
+
     - name: Add Azure CLI GPG key
       become: true
       ansible.builtin.shell: |
-        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/azure-archive-keyring.gpg
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
       args:
-        creates: /usr/share/keyrings/azure-archive-keyring.gpg
+        creates: /etc/apt/keyrings/microsoft.gpg
       when: install_az_cli | default(true) | bool
 
     - name: Add Azure CLI APT repository
       become: true
       ansible.builtin.apt_repository:
-        repo: "deb [arch={{ deb_arch }} signed-by=/usr/share/keyrings/azure-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
+        repo: "deb [arch={{ deb_arch }} signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
         state: present
         filename: azure-cli
       when: install_az_cli | default(true) | bool
