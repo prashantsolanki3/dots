@@ -212,6 +212,44 @@
   loop: "{{ hook_files }}"
   when: claude_config_mode | default('link') == 'copy'
 
+# ── User-level CLI scripts (installed into ~/.local/bin/, on $PATH) ─────────
+# Wrapper scripts the user invokes from a shell or another tool. Currently:
+#
+#   claudeclaw-start.sh  →  workaround for the upstream claudeclaw bug where
+#                            the daemon inherits and re-emits the parent
+#                            CLAUDE_CODE_OAUTH_TOKEN, causing every spawned
+#                            `claude` to 401 once the parent token rotates
+#                            (~8h after Claude Desktop restart).
+#
+# Symlinks/copies into ~/.local/bin/<name without .sh>. Skip Windows since the
+# whole role only supports macOS + Linux/WSL2.
+- name: Ensure ~/.local/bin directory exists
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.local/bin"
+    state: directory
+    mode: '0755'
+
+- name: List bin scripts in role (controller-side)
+  ansible.builtin.set_fact:
+    bin_scripts: "{{ query('fileglob', role_path ~ '/files/scripts/*.sh') }}"
+
+- name: Symlink each bin script into ~/.local/bin/ (without .sh suffix)
+  ansible.builtin.file:
+    src: "{{ item }}"
+    dest: "{{ claude_home }}/.local/bin/{{ item | basename | regex_replace('\\.sh$', '') }}"
+    state: link
+    force: true
+  loop: "{{ bin_scripts }}"
+  when: claude_config_mode | default('link') == 'link'
+
+- name: Copy each bin script into ~/.local/bin/ (without .sh suffix)
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ claude_home }}/.local/bin/{{ item | basename | regex_replace('\\.sh$', '') }}"
+    mode: '0755'
+  loop: "{{ bin_scripts }}"
+  when: claude_config_mode | default('link') == 'copy'
+
 # ── Plugin directory (marketplaces created by `claude plugin install`) ───────
 - name: Ensure ~/.claude/plugins directory exists
   ansible.builtin.file:
