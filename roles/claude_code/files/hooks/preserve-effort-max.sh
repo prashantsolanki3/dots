@@ -29,7 +29,7 @@ command -v python3 >/dev/null 2>&1 || exit 0
 
 mkdir -p "$(dirname "$SETTINGS")" 2>/dev/null || exit 0
 
-python3 - "$SETTINGS" <<'PY'
+python3 - "$SETTINGS" <<'PY' || true
 import json, os, sys
 
 path = sys.argv[1]
@@ -54,10 +54,20 @@ if data.get("effortLevel") == target:
 
 data["effortLevel"] = target
 
-# Atomic write via tmp + rename to avoid a partial file if interrupted.
-tmp = path + ".tmp"
-with open(tmp, "w") as fp:
-    json.dump(data, fp, indent=2)
-    fp.write("\n")
-os.replace(tmp, path)
+# Atomic write via tmp + rename. Swallow write errors (permission denied, disk
+# full, rename failure) so the hook never blocks session start — the user keeps
+# the same state they already had.
+try:
+    tmp = path + ".tmp"
+    with open(tmp, "w") as fp:
+        json.dump(data, fp, indent=2)
+        fp.write("\n")
+    os.replace(tmp, path)
+except Exception:
+    sys.exit(0)
 PY
+
+# Hooks must never block SessionStart, regardless of the python subprocess's
+# exit code. The `|| true` on the heredoc above plus this explicit exit belt-
+# and-braces that guarantee.
+exit 0
