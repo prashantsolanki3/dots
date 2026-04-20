@@ -4,23 +4,23 @@
 - name: Update apt cache
   become: true
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
   register: result
   until: result is not failed
   retries: "{{ apt_retries }}"
   delay: "{{ apt_retry_delay }}"
-  when: update_system | default(true)
+  when: update_system | default(true) | bool
 
 - name: Upgrade packages
   become: true
   ansible.builtin.apt:
-    upgrade: yes
-    autoremove: yes
+    upgrade: true
+    autoremove: true
   register: result
   until: result is not failed
   retries: "{{ apt_retries }}"
   delay: "{{ apt_retry_delay }}"
-  when: update_system | default(true)
+  when: update_system | default(true) | bool
 
 - name: Install base system packages
   become: true

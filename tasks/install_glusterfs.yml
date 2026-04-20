@@ -1,7 +1,7 @@
 ---
 - name: Add GlusterFS GPG key
-  apt_key:
-    url: https://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub 
+  ansible.builtin.apt_key:
+    url: https://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub
     state: present
 
 - name: Add GlusterFS APT repository
@@ -14,8 +14,8 @@
     echo deb https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/${DEBID}/${DEBARCH}/apt ${DEBVER} main > /etc/apt/sources.list.d/gluster.list
 
 - name: Install base system packages
-  package:
-    name: '{{item}}'
+  ansible.builtin.package:
+    name: '{{ item }}'
     state: latest
   loop:
     - glusterfs-client

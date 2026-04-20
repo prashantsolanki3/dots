@@ -25,22 +25,14 @@
     - ansible_facts['os_family'] == "Darwin"
     - not claude_bin_mac.stat.exists
 
-# ── Linux / WSL2: install claude via npm if missing ─────────────────────────
-- name: "[Linux] Check that claude CLI binary is on PATH"
-  ansible.builtin.command: which claude
-  register: claude_bin_linux
-  changed_when: false
-  failed_when: false
-  when: ansible_facts['os_family'] == "Debian"
-
-- name: "[Linux] Install Claude Code via npm"
+# ── Linux / WSL2: always install/upgrade Claude Code to latest via npm ─────
+- name: "[Linux] Install/upgrade Claude Code to latest via npm"
   become: true
-  ansible.builtin.command: npm install -g @anthropic-ai/claude-code
-  args:
-    creates: /usr/bin/claude
-  when:
-    - ansible_facts['os_family'] == "Debian"
-    - claude_bin_linux.rc != 0
+  community.general.npm:
+    name: "@anthropic-ai/claude-code"
+    global: true
+    state: latest
+  when: ansible_facts['os_family'] == "Debian"
 
 # ── Create config directories ───────────────────────────────────────────────
 - name: Ensure ~/.claude/agents directory exists
@@ -55,7 +47,7 @@
     src: "{{ role_path }}/files/settings.json"
     dest: "{{ claude_home }}/.claude/settings.json"
     state: link
-    force: yes
+    force: true
   when: claude_config_mode | default('link') == 'link'
 
 - name: Symlink Claude Code CLAUDE.md
@@ -63,7 +55,7 @@
     src: "{{ role_path }}/files/CLAUDE.md"
     dest: "{{ claude_home }}/.claude/CLAUDE.md"
     state: link
-    force: yes
+    force: true
   when: claude_config_mode | default('link') == 'link'
 
 # ── Config mode: copy (Docker) ──────────────────────────────────────────────
@@ -93,7 +85,7 @@
     src: "{{ item.path }}"
     dest: "{{ claude_home }}/.claude/agents/{{ item.path | basename }}"
     state: link
-    force: yes
+    force: true
   loop: "{{ agent_files.files }}"
   when: claude_config_mode | default('link') == 'link'
 
@@ -118,7 +110,7 @@
   ansible.builtin.find:
     paths: "{{ role_path }}/files/skills"
     file_type: directory
-    recurse: no
+    recurse: false
   register: skill_dirs
 
 - name: Symlink each skill directory into ~/.claude/skills/
@@ -126,7 +118,7 @@
     src: "{{ item.path }}"
     dest: "{{ claude_home }}/.claude/skills/{{ item.path | basename }}"
     state: link
-    force: yes
+    force: true
   loop: "{{ skill_dirs.files }}"
   when: deploy_skills | default(true) | bool and claude_config_mode | default('link') == 'link'
 
@@ -158,7 +150,7 @@
     src: "{{ item.path }}"
     dest: "{{ claude_home }}/.claude/commands/{{ item.path | basename }}"
     state: link
-    force: yes
+    force: true
   loop: "{{ command_files.files }}"
   when: deploy_commands | default(true) | bool and claude_config_mode | default('link') == 'link'
 
@@ -176,7 +168,7 @@
     src: "{{ role_path }}/files/settings.local.json"
     dest: "{{ claude_home }}/.claude/settings.local.json"
     state: link
-    force: yes
+    force: true
   when: claude_config_mode | default('link') == 'link'
 
 - name: Deploy settings.local.json (copy)
@@ -274,3 +266,17 @@
   when: claude_custom_plugins | default([]) | length > 0
   environment:
     HOME: "{{ claude_home }}"
+
+# ── Docker-mode: deploy container entrypoint ─────────────────────────────────
+# The entrypoint invokes `ansible-playbook sync-claude.yml` on every container
+# start, re-running the idempotent tasks above against the mounted ~/.claude
+# volume so dots updates propagate without a rebuild.
+- name: "[Docker] Deploy container entrypoint script"
+  become: true
+  ansible.builtin.copy:
+    src: entrypoint.sh
+    dest: /usr/local/bin/entrypoint.sh
+    mode: '0755'
+    owner: root
+    group: root
+  when: claude_config_mode | default('link') == 'copy'

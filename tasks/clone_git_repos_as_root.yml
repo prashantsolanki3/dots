@@ -1,12 +1,12 @@
 ---
 - name: Check if root Git repository exists
-  stat:
+  ansible.builtin.stat:
     path: "{{ item.dest }}/.git"
   register: root_git_repos
   with_items: "{{ root_repos }}"
 
 - name: Clone root Git repository
-  git:
+  ansible.builtin.git:
     repo: "{{ item.item.url }}"
     dest: "{{ item.item.dest }}"
   when: not item.stat.exists

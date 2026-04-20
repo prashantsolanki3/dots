@@ -86,7 +86,7 @@
   become: true
   ansible.builtin.user:
     name: "{{ host_username }}"
-    append: yes
+    append: true
     groups: docker
   when: docker_install_engine | bool
 
