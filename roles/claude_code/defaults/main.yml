@@ -10,8 +10,21 @@ dotfiles_dir: "{{ playbook_dir }}"
 # Config install mode: "link" for local dev (symlinks), "copy" for Docker (files copied)
 claude_config_mode: link
 
-# Target home directory (defaults to current user, override for Docker with host_username)
-claude_home: "{{ '/home/' + host_username if host_username is defined else ansible_facts['env']['HOME'] }}"
+# Target home directory.
+#
+# link mode (local dev): always uses the current user's $HOME — works on
+# macOS (/Users/<user>), Linux, and WSL2 identically.
+#
+# copy mode (Docker / remote): uses /home/<host_username> when host_username
+# is set, so a container image built under user 'builder' gets
+# /home/builder/.claude regardless of the controller's HOME.
+#
+# The previous `if host_username is defined` pattern inadvertently matched on
+# macOS too — roles/shell/defaults/main.yml defines host_username globally
+# as ansible_user_id, so on a macOS host shell+claude_code would try to
+# write to /home/<user>, which SIP refuses. Gating on claude_config_mode
+# keeps Docker behaviour intact and makes link mode correct everywhere.
+claude_home: "{{ '/home/' + host_username if claude_config_mode | default('link') == 'copy' and host_username is defined else ansible_facts['env']['HOME'] }}"
 
 # ── Marketplace plugins (installed via `claude plugin install <name>`) ──────
 claude_plugins:
@@ -56,3 +69,25 @@ deploy_skills: true
 
 # ── Local commands (deployed from files/commands/<name>.md) ────────────────
 deploy_commands: true
+
+# ── ClaudeClaw auto-start (launchd on macOS, systemd user on Linux) ─────────
+# When enabled, dots deploys a user-level service that runs
+# `claudeclaw-start --foreground` against the specified project directory
+# at login / boot. The service restarts on failure (not on clean exit) and
+# logs to <project>/.claude/claudeclaw/logs/{launchd,systemd}.{log,err}.
+#
+# Set claudeclaw_autostart_project_dir explicitly — the role fails loudly
+# if autostart is enabled without it, since every user's project path is
+# different and guessing would be wrong.
+#
+# Loading is opt-in (claudeclaw_autostart_load) so a provisioning run
+# against a host with the daemon already running via the wrapper doesn't
+# fight it for the web port. Flip to true once you're ready to hand off.
+#
+# Overrides:
+#   -e claudeclaw_autostart_enabled=true
+#   -e claudeclaw_autostart_project_dir=/Users/<you>/projects/<project>
+#   -e claudeclaw_autostart_load=true
+claudeclaw_autostart_enabled: false
+claudeclaw_autostart_project_dir: ""
+claudeclaw_autostart_load: false

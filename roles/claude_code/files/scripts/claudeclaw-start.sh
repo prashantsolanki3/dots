@@ -50,6 +50,37 @@ PROJECT_DIR="${PROJECT_DIR:-$PWD}"
 cd "$PROJECT_DIR"
 mkdir -p .claude/claudeclaw/logs
 
+# ── User-level config (shared across every project) ────────────────────────
+# ~/.config/claudeclaw/env       sourced for $VAR substitution in settings
+# ~/.config/claudeclaw/settings.template.json    copied into new projects
+# Both are deployed by the dots `claude_code` role; optional for users
+# who install claudeclaw outside of dots.
+USER_CLAUDECLAW_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claudeclaw"
+USER_ENV_FILE="$USER_CLAUDECLAW_DIR/env"
+USER_SETTINGS_TEMPLATE="$USER_CLAUDECLAW_DIR/settings.template.json"
+PROJECT_SETTINGS=".claude/claudeclaw/settings.json"
+
+# Source user-level env file if present so exported secrets become env vars
+# in the daemon process. ClaudeClaw then substitutes $VAR references in
+# settings.json at load time (requires claudeclaw >= the env-substitution
+# PR: https://github.com/moazbuilds/claudeclaw/pull/103; on older claudeclaw
+# the placeholder strings pass through literally and the user sees the
+# warning in daemon.log — safe but non-functional until upgrade).
+if [ -r "$USER_ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$USER_ENV_FILE"
+  set +a
+fi
+
+# Seed project settings from the user-level template on first launch.
+# Never overwrite an existing per-project settings.json — that belongs to
+# the project (and may have secrets the user edited in directly).
+if [ ! -f "$PROJECT_SETTINGS" ] && [ -r "$USER_SETTINGS_TEMPLATE" ]; then
+  cp "$USER_SETTINGS_TEMPLATE" "$PROJECT_SETTINGS"
+  echo "claudeclaw-start: seeded $PROJECT_SETTINGS from $USER_SETTINGS_TEMPLATE" >&2
+fi
+
 # Resolve the latest installed claudeclaw version. The plugin cache layout is
 # ~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/. Sort by mtime so
 # we pick the most recently installed.
