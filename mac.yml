@@ -13,11 +13,15 @@
     ssh_enabled: false
     shell_enabled: true
     git_enabled: true
+    bun_enabled: true
     claude_code_enabled: true
   roles:
     - role: shell
       when: shell_enabled | bool
     - role: git
       when: git_enabled | bool
+    # bun before claude_code — claudeclaw daemon + the wrapper both need it.
+    - role: bun
+      when: bun_enabled | bool
     - role: claude_code
       when: claude_code_enabled | bool

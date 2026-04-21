@@ -8,6 +8,7 @@
     git_enabled: true
     docker_enabled: true
     dev_tools_enabled: true
+    bun_enabled: true
     claude_code_enabled: true
     ssh_enabled: true
   roles:
@@ -21,6 +22,10 @@
       when: docker_enabled | bool
     - role: dev_tools
       when: dev_tools_enabled | bool
+    # bun before claude_code — the claudeclaw-start wrapper (deployed by
+    # claude_code) calls into ~/.bun/bin/bun.
+    - role: bun
+      when: bun_enabled | bool
     - role: claude_code
       when: claude_code_enabled | bool
     - role: ssh

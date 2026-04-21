@@ -1,0 +1,53 @@
+---
+# roles/bun — Install the Bun JS runtime via the official installer.
+#
+# The official script (https://bun.sh/install) supports macOS, Linux, and
+# WSL2 with a single code path and lands the binary at `~/.bun/bin/bun` on
+# every platform — matches what ClaudeClaw and the `claudeclaw-start`
+# wrapper (in roles/claude_code) expect.
+#
+# `creates:` on the shell task gives us idempotence: the installer only
+# runs when the binary is absent. Re-running the playbook against an
+# already-provisioned host is a no-op.
+
+- name: Ensure curl is available (Debian)
+  ansible.builtin.apt:
+    name: curl
+    state: present
+    update_cache: true
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
+  tags: ['bun']
+
+- name: Check if bun binary already exists
+  ansible.builtin.stat:
+    path: "{{ bun_home }}/.bun/bin/bun"
+  register: bun_binary
+  tags: ['bun']
+
+- name: Install bun via official installer
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      curl -fsSL https://bun.sh/install | bash
+    executable: /bin/bash
+    creates: "{{ bun_home }}/.bun/bin/bun"
+  environment:
+    # Pin install target so the installer respects our host_username override
+    # for Docker / remote runs. Without this the installer uses $HOME, which
+    # may differ from the target account under become_user.
+    BUN_INSTALL: "{{ bun_home }}/.bun"
+  when: not bun_binary.stat.exists
+  tags: ['bun']
+
+- name: Record bun version (for visibility in run output)
+  ansible.builtin.command: "{{ bun_home }}/.bun/bin/bun --version"
+  register: bun_version
+  changed_when: false
+  check_mode: false
+  tags: ['bun']
+
+- name: Show installed bun version
+  ansible.builtin.debug:
+    msg: "bun {{ bun_version.stdout }} at {{ bun_home }}/.bun/bin/bun"
+  tags: ['bun']

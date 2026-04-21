@@ -1,0 +1,17 @@
+---
+# roles/bun — Install the Bun JavaScript runtime
+#
+# Bun is required by the ClaudeClaw plugin (it runs `bun run src/index.ts`).
+# The role installs into `~/.bun/bin/bun` via the official installer script,
+# the same path the upstream plugin expects on every platform.
+
+bun_enabled: true
+
+# Target home. Defaults to the current user's $HOME on both macOS and Linux.
+#
+# For Docker / remote-provisioning runs that install for a different account,
+# override explicitly: `ansible-playbook dev.yml -e bun_home=/home/builder`.
+# We intentionally do not infer this from `host_username` — that variable is
+# defined by roles/shell/defaults/main.yml (as `ansible_user_id`) and on macOS
+# would produce the wrong path (`/home/user` instead of `/Users/user`).
+bun_home: "{{ ansible_facts['env']['HOME'] }}"
