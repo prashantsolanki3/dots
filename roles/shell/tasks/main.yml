@@ -50,3 +50,35 @@
     group: "{{ host_username }}"
   when: ansible_facts['os_family'] != "Darwin"
   tags: ['user_dots', 'dots']
+
+# ── ~/.local/bin on PATH ─────────────────────────────────────────────────────
+# Adds a marker-delimited block to ~/.bashrc and ~/.zshrc that puts
+# ~/.local/bin on PATH when it isn't already there. Needed by the
+# claude_code role's `claudeclaw-start` wrapper (and any other
+# user-level scripts deployed under files/scripts/ in future roles).
+#
+# Uses `blockinfile` for idempotent round-trip — the block is rewritten
+# in place on re-runs and can be cleanly removed by deleting the
+# marker lines. The runtime `case` guard prevents the PATH from
+# growing on every shell spawn when the block is evaluated more than
+# once (parent + child shell).
+- name: Resolve target home for rc files
+  ansible.builtin.set_fact:
+    _rc_home: "{{ ansible_facts['env']['HOME'] if ansible_facts['os_family'] == 'Darwin' else '/home/' + host_username }}"
+  tags: ['user_dots', 'dots', 'path']
+
+- name: Ensure ~/.local/bin is on PATH (shell rc files)
+  ansible.builtin.blockinfile:
+    path: "{{ _rc_home }}/{{ item }}"
+    marker: "# {mark} dots: ~/.local/bin on PATH"
+    create: true
+    mode: '0644'
+    block: |
+      case ":$PATH:" in
+        *":$HOME/.local/bin:"*) ;;
+        *) export PATH="$HOME/.local/bin:$PATH" ;;
+      esac
+  loop:
+    - .bashrc
+    - .zshrc
+  tags: ['user_dots', 'dots', 'path']
