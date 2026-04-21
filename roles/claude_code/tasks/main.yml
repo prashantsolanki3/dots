@@ -288,6 +288,110 @@
     mode: '0600'
   tags: ['claudeclaw']
 
+# ── ClaudeClaw auto-start (launchd / systemd user) ─────────────────────────
+# Gate on claudeclaw_autostart_enabled — default off. When on, require the
+# project directory so the rendered service knows where to cd.
+- name: Validate claudeclaw_autostart_project_dir when autostart is enabled
+  ansible.builtin.assert:
+    that:
+      - claudeclaw_autostart_project_dir | length > 0
+    fail_msg: >
+      claudeclaw_autostart_enabled=true but claudeclaw_autostart_project_dir
+      is empty. Set an absolute path like
+      `-e claudeclaw_autostart_project_dir=/Users/you/projects/thing`.
+  when: claudeclaw_autostart_enabled | bool
+  tags: ['claudeclaw', 'autostart']
+
+# --- macOS: launchd user-agent ---
+- name: Ensure ~/Library/LaunchAgents exists (macOS)
+  ansible.builtin.file:
+    path: "{{ claude_home }}/Library/LaunchAgents"
+    state: directory
+    mode: '0755'
+  when:
+    - claudeclaw_autostart_enabled | bool
+    - ansible_facts['os_family'] == "Darwin"
+  tags: ['claudeclaw', 'autostart']
+
+- name: Render launchd plist for ClaudeClaw (macOS)
+  ansible.builtin.template:
+    src: claudeclaw.plist.j2
+    dest: "{{ claude_home }}/Library/LaunchAgents/sh.claudeclaw.daemon.plist"
+    mode: '0644'
+  register: _claudeclaw_plist
+  when:
+    - claudeclaw_autostart_enabled | bool
+    - ansible_facts['os_family'] == "Darwin"
+  tags: ['claudeclaw', 'autostart']
+
+- name: Reload launchd agent when plist changes (macOS)
+  # bootout is idempotent-enough: succeeds if loaded, 'not loaded' if not.
+  # bootstrap then loads with the current plist contents. failed_when: false
+  # absorbs the expected 'not currently loaded' exit code on first run.
+  ansible.builtin.shell: |
+    set -e
+    uid=$(id -u)
+    launchctl bootout "gui/$uid/sh.claudeclaw.daemon" 2>/dev/null || true
+    launchctl bootstrap "gui/$uid" "{{ claude_home }}/Library/LaunchAgents/sh.claudeclaw.daemon.plist"
+  changed_when: true
+  when:
+    - claudeclaw_autostart_enabled | bool
+    - claudeclaw_autostart_load | bool
+    - ansible_facts['os_family'] == "Darwin"
+    - _claudeclaw_plist is changed
+  tags: ['claudeclaw', 'autostart']
+
+# --- Linux: systemd --user service ---
+- name: Ensure ~/.config/systemd/user exists (Linux)
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.config/systemd/user"
+    state: directory
+    mode: '0755'
+  when:
+    - claudeclaw_autostart_enabled | bool
+    - ansible_facts['os_family'] != "Darwin"
+  tags: ['claudeclaw', 'autostart']
+
+- name: Render systemd user service for ClaudeClaw (Linux)
+  ansible.builtin.template:
+    src: claudeclaw.service.j2
+    dest: "{{ claude_home }}/.config/systemd/user/claudeclaw.service"
+    mode: '0644'
+  register: _claudeclaw_service
+  when:
+    - claudeclaw_autostart_enabled | bool
+    - ansible_facts['os_family'] != "Darwin"
+  tags: ['claudeclaw', 'autostart']
+
+- name: Enable + (re)start ClaudeClaw systemd user service (Linux)
+  ansible.builtin.systemd_service:
+    name: claudeclaw.service
+    scope: user
+    daemon_reload: true
+    enabled: true
+    state: "{{ 'restarted' if _claudeclaw_service is changed else 'started' }}"
+  when:
+    - claudeclaw_autostart_enabled | bool
+    - claudeclaw_autostart_load | bool
+    - ansible_facts['os_family'] != "Darwin"
+  tags: ['claudeclaw', 'autostart']
+
+- name: Autostart summary (tells user the manual load command if load=false)
+  ansible.builtin.debug:
+    msg: |
+      ClaudeClaw autostart file deployed but NOT loaded (claudeclaw_autostart_load=false).
+      To load manually:
+      {% if ansible_facts['os_family'] == 'Darwin' %}
+        launchctl bootstrap gui/$(id -u) {{ claude_home }}/Library/LaunchAgents/sh.claudeclaw.daemon.plist
+      {% else %}
+        systemctl --user daemon-reload
+        systemctl --user enable --now claudeclaw.service
+      {% endif %}
+  when:
+    - claudeclaw_autostart_enabled | bool
+    - not claudeclaw_autostart_load | bool
+  tags: ['claudeclaw', 'autostart']
+
 # ── Plugin directory (marketplaces created by `claude plugin install`) ───────
 - name: Ensure ~/.claude/plugins directory exists
   ansible.builtin.file:

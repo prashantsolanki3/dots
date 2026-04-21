@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  launchd user-agent for the ClaudeClaw daemon.
+  Rendered by roles/claude_code from claudeclaw.plist.j2.
+
+  Installed at: ~/Library/LaunchAgents/sh.claudeclaw.daemon.plist
+  Load:   launchctl bootstrap gui/$UID ~/Library/LaunchAgents/sh.claudeclaw.daemon.plist
+  Unload: launchctl bootout   gui/$UID/sh.claudeclaw.daemon
+  Status: launchctl print     gui/$UID/sh.claudeclaw.daemon
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>sh.claudeclaw.daemon</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{ claude_home }}/.local/bin/claudeclaw-start</string>
+        <string>--foreground</string>
+        <string>{{ claudeclaw_autostart_project_dir }}</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>{{ claudeclaw_autostart_project_dir }}</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>{{ claudeclaw_autostart_project_dir }}/.claude/claudeclaw/logs/launchd.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>{{ claudeclaw_autostart_project_dir }}/.claude/claudeclaw/logs/launchd.err</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOME</key>
+        <string>{{ claude_home }}</string>
+        <key>PATH</key>
+        <string>{{ claude_home }}/.bun/bin:{{ claude_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+</dict>
+</plist>

@@ -1,0 +1,28 @@
+# systemd user service for the ClaudeClaw daemon.
+# Rendered by roles/claude_code from claudeclaw.service.j2.
+#
+# Installed at: ~/.config/systemd/user/claudeclaw.service
+# Enable:  systemctl --user daemon-reload && systemctl --user enable --now claudeclaw.service
+# Status:  systemctl --user status claudeclaw.service
+# Logs:    journalctl --user -u claudeclaw.service -f
+# Disable: systemctl --user disable --now claudeclaw.service
+
+[Unit]
+Description=ClaudeClaw daemon ({{ claudeclaw_autostart_project_dir }})
+Documentation=https://github.com/moazbuilds/claudeclaw
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory={{ claudeclaw_autostart_project_dir }}
+ExecStart={{ claude_home }}/.local/bin/claudeclaw-start --foreground {{ claudeclaw_autostart_project_dir }}
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:{{ claudeclaw_autostart_project_dir }}/.claude/claudeclaw/logs/systemd.log
+StandardError=append:{{ claudeclaw_autostart_project_dir }}/.claude/claudeclaw/logs/systemd.err
+Environment=HOME={{ claude_home }}
+Environment=PATH={{ claude_home }}/.bun/bin:{{ claude_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=default.target

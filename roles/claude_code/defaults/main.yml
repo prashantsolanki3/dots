@@ -69,3 +69,25 @@ deploy_skills: true
 
 # ── Local commands (deployed from files/commands/<name>.md) ────────────────
 deploy_commands: true
+
+# ── ClaudeClaw auto-start (launchd on macOS, systemd user on Linux) ─────────
+# When enabled, dots deploys a user-level service that runs
+# `claudeclaw-start --foreground` against the specified project directory
+# at login / boot. The service restarts on failure (not on clean exit) and
+# logs to <project>/.claude/claudeclaw/logs/{launchd,systemd}.{log,err}.
+#
+# Set claudeclaw_autostart_project_dir explicitly — the role fails loudly
+# if autostart is enabled without it, since every user's project path is
+# different and guessing would be wrong.
+#
+# Loading is opt-in (claudeclaw_autostart_load) so a provisioning run
+# against a host with the daemon already running via the wrapper doesn't
+# fight it for the web port. Flip to true once you're ready to hand off.
+#
+# Overrides:
+#   -e claudeclaw_autostart_enabled=true
+#   -e claudeclaw_autostart_project_dir=/Users/<you>/projects/<project>
+#   -e claudeclaw_autostart_load=true
+claudeclaw_autostart_enabled: false
+claudeclaw_autostart_project_dir: ""
+claudeclaw_autostart_load: false
