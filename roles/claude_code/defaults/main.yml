@@ -10,8 +10,21 @@ dotfiles_dir: "{{ playbook_dir }}"
 # Config install mode: "link" for local dev (symlinks), "copy" for Docker (files copied)
 claude_config_mode: link
 
-# Target home directory (defaults to current user, override for Docker with host_username)
-claude_home: "{{ '/home/' + host_username if host_username is defined else ansible_facts['env']['HOME'] }}"
+# Target home directory.
+#
+# link mode (local dev): always uses the current user's $HOME — works on
+# macOS (/Users/<user>), Linux, and WSL2 identically.
+#
+# copy mode (Docker / remote): uses /home/<host_username> when host_username
+# is set, so a container image built under user 'builder' gets
+# /home/builder/.claude regardless of the controller's HOME.
+#
+# The previous `if host_username is defined` pattern inadvertently matched on
+# macOS too — roles/shell/defaults/main.yml defines host_username globally
+# as ansible_user_id, so on a macOS host shell+claude_code would try to
+# write to /home/<user>, which SIP refuses. Gating on claude_config_mode
+# keeps Docker behaviour intact and makes link mode correct everywhere.
+claude_home: "{{ '/home/' + host_username if claude_config_mode | default('link') == 'copy' and host_username is defined else ansible_facts['env']['HOME'] }}"
 
 # ── Marketplace plugins (installed via `claude plugin install <name>`) ──────
 claude_plugins:

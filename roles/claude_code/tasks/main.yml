@@ -250,6 +250,44 @@
   loop: "{{ bin_scripts }}"
   when: claude_config_mode | default('link') == 'copy'
 
+# ── ClaudeClaw user-level config (template + env example) ───────────────────
+# Dots ships two files into ~/.config/claudeclaw/:
+#
+#   settings.template.json  Rendered from claudeclaw-settings.json.j2 using
+#                           the Ansible vars listed at the top of the
+#                           template. `claudeclaw-start` copies this file
+#                           into <project>/.claude/claudeclaw/settings.json
+#                           the first time the daemon is launched in that
+#                           project (never overwrites existing settings).
+#
+#   env.example             Documented list of secret env vars the daemon
+#                           consumes via $VAR substitution in settings.
+#                           User copies this to ~/.config/claudeclaw/env
+#                           and fills in values. We never ship or rewrite
+#                           the real `env` file — it's gitignored user data.
+#
+# Directory mode 0700: contains secrets once the user populates env.
+- name: Ensure ~/.config/claudeclaw directory exists
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.config/claudeclaw"
+    state: directory
+    mode: '0700'
+  tags: ['claudeclaw']
+
+- name: Render ClaudeClaw settings template to ~/.config/claudeclaw/
+  ansible.builtin.template:
+    src: claudeclaw-settings.json.j2
+    dest: "{{ claude_home }}/.config/claudeclaw/settings.template.json"
+    mode: '0644'
+  tags: ['claudeclaw']
+
+- name: Deploy ClaudeClaw env.example (never overwrite user's env)
+  ansible.builtin.copy:
+    src: claudeclaw/env.example
+    dest: "{{ claude_home }}/.config/claudeclaw/env.example"
+    mode: '0600'
+  tags: ['claudeclaw']
+
 # ── Plugin directory (marketplaces created by `claude plugin install`) ───────
 - name: Ensure ~/.claude/plugins directory exists
   ansible.builtin.file:

@@ -1,0 +1,71 @@
+{# Managed by dots — ~/.config/claudeclaw/settings.template.json
+
+This template seeds per-project settings at `<project>/.claude/claudeclaw/settings.json`
+on first `claudeclaw-start` in a new directory. Non-secret defaults come from the
+Ansible vars below; secrets live in `~/.config/claudeclaw/env` and are resolved by
+ClaudeClaw at load time (requires the env-var-substitution feature — see
+https://github.com/moazbuilds/claudeclaw/pull/103).
+
+Override any field per-host via group_vars / host_vars or `-e claudeclaw_<field>=...`:
+
+  claudeclaw_model                  opus | sonnet | haiku | glm
+  claudeclaw_fallback_model         glm (or empty to disable fallback)
+  claudeclaw_agentic_enabled        true | false
+  claudeclaw_session_timeout_ms     default 1200000 (20 min)
+  claudeclaw_timezone               UTC, UTC+10, UTC-5, etc.
+  claudeclaw_heartbeat_enabled      true | false
+  claudeclaw_heartbeat_interval     minutes
+  claudeclaw_heartbeat_prompt       inline string OR a file path like 'prompts/heartbeat.md'
+  claudeclaw_telegram_user_ids      list of numeric Telegram user IDs
+  claudeclaw_discord_user_ids       list of string Discord snowflake IDs
+  claudeclaw_discord_channels       list of string Discord channel IDs
+  claudeclaw_security_level         locked | strict | moderate | unrestricted
+  claudeclaw_security_allowed       list of `Bash(git:*)`-style tool specs
+  claudeclaw_security_disallowed    list of tool specs to block
+-#}
+{
+  "model": "{{ claudeclaw_model | default('opus') }}",
+  "api": "$ANTHROPIC_API_KEY",
+  "sessionTimeoutMs": {{ claudeclaw_session_timeout_ms | default(1200000) }},
+  "fallback": {
+    "model": "{{ claudeclaw_fallback_model | default('glm') }}",
+    "api": "$GLM_API_KEY"
+  },
+  "agentic": {
+    "enabled": {{ claudeclaw_agentic_enabled | default(true) | tojson }},
+    "defaultMode": "implementation",
+    "modes": [
+      {
+        "name": "planning",
+        "model": "{{ claudeclaw_planning_model | default('opus') }}",
+        "keywords": ["plan", "design", "architect", "research", "analyze", "think", "evaluate", "review"],
+        "phrases": ["how should i", "what's the best way to", "help me decide"]
+      },
+      {
+        "name": "implementation",
+        "model": "{{ claudeclaw_implementation_model | default('sonnet') }}",
+        "keywords": ["implement", "code", "write", "fix", "deploy", "test", "commit"]
+      }
+    ]
+  },
+  "timezone": "{{ claudeclaw_timezone | default('UTC') }}",
+  "heartbeat": {
+    "enabled": {{ claudeclaw_heartbeat_enabled | default(false) | tojson }},
+    "interval": {{ claudeclaw_heartbeat_interval | default(15) }},
+    "prompt": {{ claudeclaw_heartbeat_prompt | default('') | tojson }}
+  },
+  "telegram": {
+    "token": "$TELEGRAM_BOT_TOKEN",
+    "allowedUserIds": {{ claudeclaw_telegram_user_ids | default([]) | tojson }}
+  },
+  "discord": {
+    "token": "$DISCORD_BOT_TOKEN",
+    "allowedUserIds": {{ claudeclaw_discord_user_ids | default([]) | tojson }},
+    "listenChannels": {{ claudeclaw_discord_channels | default([]) | tojson }}
+  },
+  "security": {
+    "level": "{{ claudeclaw_security_level | default('moderate') }}",
+    "allowedTools": {{ claudeclaw_security_allowed | default([]) | tojson }},
+    "disallowedTools": {{ claudeclaw_security_disallowed | default([]) | tojson }}
+  }
+}
