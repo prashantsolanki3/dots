@@ -1,0 +1,32 @@
+---
+# Optional tools that help with the ingest/output side of the wiki.
+# All flags default off — opt in per-host.
+
+# ── marp-cli: render wiki pages as slide decks ──────────────────────────────
+- name: "llm_wiki | install @marp-team/marp-cli via npm (global)"
+  become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
+  community.general.npm:
+    name: "@marp-team/marp-cli"
+    global: true
+    state: latest
+  when: install_marp | bool
+
+# ── pandoc: convert PDF/DOCX to markdown before ingest ──────────────────────
+- name: "[macOS] llm_wiki | install pandoc via Homebrew"
+  community.general.homebrew:
+    name: pandoc
+    state: present
+  when:
+    - install_pandoc | bool
+    - ansible_facts['os_family'] == "Darwin"
+
+- name: "[Linux] llm_wiki | install pandoc via apt"
+  become: true
+  ansible.builtin.apt:
+    name: pandoc
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  when:
+    - install_pandoc | bool
+    - ansible_facts['os_family'] == "Debian"

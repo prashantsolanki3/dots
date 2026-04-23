@@ -1,0 +1,34 @@
+---
+# Install qmd globally via npm. Works on macOS and Linux.
+#
+# qmd is a Node/Bun package; it bundles its own MCP server (`qmd mcp`).
+# Note: the npm name is "@tobilu/qmd" — the unscoped "qmd" package on
+# npmjs is an abandoned 2016 stub. The real source is
+# https://github.com/tobilu/qmd. The binary lands as `qmd` on PATH.
+# The MCP registration for Claude Code lives in
+# roles/claude_code/files/mcp/qmd.json and is merged into ~/.claude.json
+# by the claude_code role — not duplicated here.
+
+- name: "llm_wiki | check if qmd is already installed"
+  ansible.builtin.command: qmd --version
+  register: qmd_version_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: "llm_wiki | install qmd via npm (global) — @tobilu/qmd"
+  become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
+  community.general.npm:
+    name: "@tobilu/qmd"
+    global: true
+    state: latest
+  when: qmd_version_check.rc != 0 or qmd_version_check.stdout == ''
+  register: qmd_install
+
+- name: "llm_wiki | qmd install summary"
+  ansible.builtin.debug:
+    msg: >-
+      qmd {{ 'already installed at version ' + qmd_version_check.stdout
+         if qmd_version_check.rc == 0 and qmd_version_check.stdout != ''
+         else 'installed via npm (@tobilu/qmd)' }}.
+      Per-project setup: `qmd collection add docs/ && qmd embed` inside each wiki repo.

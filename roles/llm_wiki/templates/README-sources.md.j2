@@ -1,0 +1,24 @@
+---
+name: Sources
+type: source
+status: current
+created: {{ ansible_date_time.date }}
+updated: {{ ansible_date_time.date }}
+---
+
+# Sources
+
+Raw ingested material. **Immutable** once dropped — wiki-keeper reads but never rewrites.
+
+## Categories
+
+- `clippings/` — web articles, blog posts, docs. Use Obsidian Web Clipper.
+- `transcripts/` — meeting notes, customer-call transcripts, podcast transcripts.
+- `papers/` — PDFs, research, vendor whitepapers.
+- `assets/` — binary files, images, PDFs referenced by other sources.
+
+## Ingest
+
+Drop material and run `/wiki-ingest sources/<category>/<file>` (or `/wiki-ingest <url>` to fetch + file in one step). The wiki-keeper reads the source, summarises, and updates entity/concept pages.
+
+See [../CLAUDE.md](../CLAUDE.md) for the schema.

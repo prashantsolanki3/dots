@@ -1,0 +1,107 @@
+# {{ wiki_project_name }} Wiki Schema
+
+This file is the instruction sheet for the **LLM-maintained wiki** layered onto `{{ wiki_dir }}/`. Claude Code loads this automatically when working in `{{ wiki_dir }}/`. Read it before ingesting sources, answering wiki queries, or running lint.
+
+The pattern: raw sources → LLM-curated synthesis → index + log for navigation. Knowledge accumulates; it is not re-derived on every question.
+
+Reference: [LLM Wiki pattern](https://gist.github.com/prashantsolanki3/baf5332058a11527489d96fca3ac93c0) — this schema is an instantiation of that pattern.
+
+## Zones
+
+Two kinds of subdirectories under `{{ wiki_dir }}/`. The wiki-keeper writes only to the living zone.
+
+### Living zone (LLM-maintained by `wiki-keeper`)
+
+| Dir | Holds |
+|---|---|
+| `sources/` | Raw ingested material: clippings, transcripts, papers, assets. Immutable once dropped. Wiki-keeper **reads** but never rewrites. |
+| `entities/` | Recurring nouns: repos, services, agents, people, vendors, customers. One page per entity. |
+| `concepts/` | Recurring ideas: design patterns, architectural concepts, principles. |
+| `decisions/` | Lightweight ADRs — dated records of a decision, context, and consequences. |
+| `runbooks/` | Ops recipes: verify suites, bootstrap flows, incident response, deploy procedures. |
+| `synthesis/` | Filed-back query results, comparisons, analyses. |
+| `INDEX.md` | Catalog of every page with one-line summary, organised by category. |
+| `LOG.md` | Chronological record of every ingest/query/lint/filed-back operation. Append-only. |
+| `templates/` | Page shells copied when creating a new entity/concept/decision/runbook manually. |
+| `CLAUDE.md` | This file. |
+
+### Governed zone (human-owned — wiki-keeper reads, never writes)
+
+Any subdirectory of `{{ wiki_dir }}/` not listed in the living-zone table above is considered governed. Typical governed dirs include `workflows/`, `process/`, `contracts/`, `governance/`, formal product documentation, and `plans/`. The wiki-keeper reads these freely and may cite them, but does not edit them. Drift between the two zones is flagged by lint but never auto-fixed.
+
+## Page frontmatter
+
+Every page in the living zone starts with YAML frontmatter:
+
+```yaml
+---
+name: Concise page title
+type: entity | concept | decision | runbook | source | synthesis
+tags: [tag1, tag2]
+sources: [sources/clippings/YYYY-MM-DD-...md, sources/papers/...md]
+related: [[entities/foo]], [[concepts/bar]]
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+status: stub | draft | current | stale
+---
+```
+
+- `sources` is the provenance list — every non-trivial claim should be traceable.
+- `related` uses `[[path/without-extension]]` wiki-link syntax; Obsidian and qmd both parse it.
+- `status`: **stub** (placeholder), **draft** (in progress), **current** (verified against latest sources), **stale** (last-updated predates a contradicting source — flagged by lint).
+
+## Operations
+
+### Ingest — `/wiki-ingest <path-or-url>`
+
+1. Wiki-keeper reads the source end-to-end (fetch URL or extract PDF if needed).
+2. Discusses 3–5 key takeaways with the user.
+3. Writes `sources/<category>/YYYY-MM-DD-<slug>.md` with frontmatter + abstract + structured notes.
+4. For each touched entity/concept: **update** existing pages (note contradictions, flip stale sections, bump `updated:`) or **create** stubs for new ones.
+5. Updates `INDEX.md`.
+6. Appends to `LOG.md`: `## [YYYY-MM-DD] ingest | <slug>`.
+7. Reports the delta to the user.
+
+### Query — `/wiki-query <question>`
+
+1. Reads `INDEX.md` to find candidates.
+2. Reads those pages.
+3. If qmd MCP is available, uses it for wider hits.
+4. Synthesises with citations.
+5. Offers to file back under `synthesis/YYYY-MM-DD-<slug>.md` if substantive.
+6. Appends to `LOG.md`.
+
+### Lint — `/wiki-lint`
+
+Checks: orphans, stale, contradictions, dangling wiki-links, missing pages, INDEX drift, cross-zone drift.
+
+Report → user confirms → wiki-keeper applies fixes. INDEX drift auto-fixes (safe). Cross-zone drift is never auto-fixed — wiki-keeper files a synthesis note and flags to the user.
+
+## Wiki-keeper subagent
+
+Specialist agent at `~/.claude/agents/wiki-keeper.md` (deployed by dots). Invoke via the `Agent` tool with `subagent_type: wiki-keeper`. Other agents are **read-only** against the living zone.
+
+## Tooling
+
+- **qmd** — local markdown search (npm package `@tobilu/qmd`, binary `qmd`). Install via dots (`roles/claude_code/` `claude_npm_packages`). MCP auto-registered. One-time per project: `qmd collection add {{ wiki_dir }}/ && qmd embed`. Re-embed after batch ingests with `qmd embed --incremental`.
+- **Obsidian** — optional reader. Open this repo as a vault. Configure attachment path to `{{ wiki_dir }}/sources/assets/`. Web Clipper output → `{{ wiki_dir }}/sources/clippings/`.
+- **Marp CLI** — optional slide rendering.
+- **Pandoc** — optional PDF/DOCX → markdown conversion.
+
+## Naming conventions
+
+- Entities: `entities/<kind>-<slug>.md` — e.g. `repo-foo`, `vendor-bar`, `agent-baz`.
+- Concepts: `concepts/<slug>.md` — lowercase-kebab.
+- Decisions: `decisions/adr-NNNN-<slug>.md`.
+- Runbooks: `runbooks/runbook-<slug>.md`.
+- Sources: `sources/<category>/YYYY-MM-DD-<slug>.md`.
+- Synthesis: `synthesis/YYYY-MM-DD-<slug>.md`.
+
+## Non-goals
+
+- The wiki **is not** a task tracker — tasks live in the project's issue tracker / GitHub Project.
+- The wiki **does not** replace formal shared contracts.
+- The wiki **does not** replace user-facing product documentation.
+- The wiki **does not** replace per-repo implementation docs.
+
+The wiki is where **evolving synthesis** lives — the layer that used to die in chat history.
