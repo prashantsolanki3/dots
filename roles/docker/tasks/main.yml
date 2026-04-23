@@ -6,6 +6,10 @@
 #   docker_install_engine → docker-ce + containerd.io (host daemon)
 #
 # Skip the role entirely with `docker_enabled: false`.
+#
+# All tasks are apt-based and Debian/Ubuntu-only. Gated at block-level so
+# running this role on macOS is a clean no-op instead of failing with a
+# sudo prompt. On macOS, install Docker Desktop manually.
 
 - name: Validate at least one docker component is selected
   ansible.builtin.assert:
@@ -15,105 +19,108 @@
       docker role enabled but both docker_install_cli and
       docker_install_engine are false — nothing to install.
 
-- name: Install Docker apt prerequisites
-  become: true
-  ansible.builtin.apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg
-      - lsb-release
-    state: present
-  register: result
-  until: result is not failed
-  retries: "{{ apt_retries }}"
-  delay: "{{ apt_retry_delay }}"
+- name: Docker - install via apt (Debian/Ubuntu only)
+  when: ansible_facts['os_family'] == "Debian"
+  block:
+    - name: Install Docker apt prerequisites
+      become: true
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+      register: result
+      until: result is not failed
+      retries: "{{ apt_retries }}"
+      delay: "{{ apt_retry_delay }}"
 
-- name: Add Ubuntu Docker GPG key
-  become: true
-  ansible.builtin.apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
-  when: ansible_distribution == 'Ubuntu'
+    - name: Add Ubuntu Docker GPG key
+      become: true
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_distribution == 'Ubuntu'
 
-- name: Add Ubuntu Docker APT repository
-  become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-    state: present
-  when: ansible_distribution == 'Ubuntu'
+    - name: Add Ubuntu Docker APT repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_distribution == 'Ubuntu'
 
-- name: Add Debian Docker GPG key
-  become: true
-  ansible.builtin.apt_key:
-    url: https://download.docker.com/linux/debian/gpg
-    state: present
-  when: ansible_distribution == 'Debian'
+    - name: Add Debian Docker GPG key
+      become: true
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+      when: ansible_distribution == 'Debian'
 
-- name: Add Debian Docker APT repository
-  become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
-    state: present
-  when: ansible_distribution == 'Debian'
+    - name: Add Debian Docker APT repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_distribution == 'Debian'
 
-- name: Build Docker package list from toggles
-  ansible.builtin.set_fact:
-    docker_packages: >-
-      {{
-        (['docker-ce-cli', 'docker-buildx-plugin', 'docker-compose-plugin']
-           if docker_install_cli | bool else [])
-        +
-        (['docker-ce', 'containerd.io']
-           if docker_install_engine | bool else [])
-      }}
+    - name: Build Docker package list from toggles
+      ansible.builtin.set_fact:
+        docker_packages: >-
+          {{
+            (['docker-ce-cli', 'docker-buildx-plugin', 'docker-compose-plugin']
+               if docker_install_cli | bool else [])
+            +
+            (['docker-ce', 'containerd.io']
+               if docker_install_engine | bool else [])
+          }}
 
-- name: Install selected Docker packages
-  become: true
-  ansible.builtin.apt:
-    name: "{{ docker_packages }}"
-    state: present
-  register: result
-  until: result is not failed
-  retries: "{{ apt_retries }}"
-  delay: "{{ apt_retry_delay }}"
+    - name: Install selected Docker packages
+      become: true
+      ansible.builtin.apt:
+        name: "{{ docker_packages }}"
+        state: present
+      register: result
+      until: result is not failed
+      retries: "{{ apt_retries }}"
+      delay: "{{ apt_retry_delay }}"
 
-# The `docker` system group is created by the engine package. Skip group
-# membership when only the CLI is installed (e.g. DinD-via-socket dev images
-# where socket access is granted at runtime instead).
-- name: Add user to Docker group
-  become: true
-  ansible.builtin.user:
-    name: "{{ host_username }}"
-    append: true
-    groups: docker
-  when: docker_install_engine | bool
+    # The `docker` system group is created by the engine package. Skip group
+    # membership when only the CLI is installed (e.g. DinD-via-socket dev
+    # images where socket access is granted at runtime instead).
+    - name: Add user to Docker group
+      become: true
+      ansible.builtin.user:
+        name: "{{ host_username }}"
+        append: true
+        groups: docker
+      when: docker_install_engine | bool
 
-- name: Verify docker CLI is available
-  ansible.builtin.command: docker --version
-  register: docker_cli_check
-  changed_when: false
-  failed_when: false
-  when: docker_install_cli | bool
+    - name: Verify docker CLI is available
+      ansible.builtin.command: docker --version
+      register: docker_cli_check
+      changed_when: false
+      failed_when: false
+      when: docker_install_cli | bool
 
-- name: Show docker CLI version
-  ansible.builtin.debug:
-    msg: "{{ docker_cli_check.stdout }}"
-  when:
-    - docker_install_cli | bool
-    - docker_cli_check.rc | default(1) == 0
+    - name: Show docker CLI version
+      ansible.builtin.debug:
+        msg: "{{ docker_cli_check.stdout }}"
+      when:
+        - docker_install_cli | bool
+        - docker_cli_check.rc | default(1) == 0
 
-- name: Verify docker compose plugin is available
-  ansible.builtin.command: docker compose version
-  register: docker_compose_check
-  changed_when: false
-  failed_when: false
-  when: docker_install_cli | bool
+    - name: Verify docker compose plugin is available
+      ansible.builtin.command: docker compose version
+      register: docker_compose_check
+      changed_when: false
+      failed_when: false
+      when: docker_install_cli | bool
 
-- name: Show docker compose version
-  ansible.builtin.debug:
-    msg: "{{ docker_compose_check.stdout }}"
-  when:
-    - docker_install_cli | bool
-    - docker_compose_check.rc | default(1) == 0
+    - name: Show docker compose version
+      ansible.builtin.debug:
+        msg: "{{ docker_compose_check.stdout }}"
+      when:
+        - docker_install_cli | bool
+        - docker_compose_check.rc | default(1) == 0
