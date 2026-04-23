@@ -18,10 +18,11 @@
 llm_wiki_enabled: true
 
 # qmd: local markdown search (BM25 + vector + rerank) with MCP server.
-# https://github.com/tobi/qmd — installed via npm globally.
-# Piggybacks on roles/claude_code/ claude_npm_packages, so this flag is
-# informational unless you want to force reinstall.
-install_qmd: true
+# https://github.com/tobilu/qmd — installed via npm (@tobilu/qmd) globally.
+# Default OFF here because claude_code role's claude_npm_packages already
+# installs @tobilu/qmd. Flip to true to force a reinstall/upgrade in
+# isolation, e.g. when running --tags llm_wiki without --tags claude_code.
+install_qmd: false
 
 # Optional extras. Default off — flip per-host or via --extra-vars.
 install_marp: false      # @marp-team/marp-cli — render wiki pages as slides

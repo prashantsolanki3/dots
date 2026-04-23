@@ -18,8 +18,8 @@ test -f docs/CLAUDE.md && echo "wiki initialised" || echo "wiki not initialised 
 If not initialised:
 
 ```bash
-# From the dots repo
-ansible-playbook roles/llm_wiki/tasks/scaffold_wiki.yml \
+# From the dots repo root
+ansible-playbook scaffold-wiki.yml \
   -e "wiki_target=$(pwd)"
 ```
 

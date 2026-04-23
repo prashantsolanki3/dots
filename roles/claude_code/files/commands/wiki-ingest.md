@@ -10,7 +10,7 @@ Ingest a new source into the project's wiki at `docs/`.
 
 ## Flow
 
-1. Read `docs/CLAUDE.md` (the wiki schema) first. If it doesn't exist, stop and tell the user to initialise the wiki (`ansible-playbook roles/llm_wiki/tasks/scaffold_wiki.yml -e wiki_target=$(pwd)` from the dots repo).
+1. Read `docs/CLAUDE.md` (the wiki schema) first. If it doesn't exist, stop and tell the user to initialise the wiki (from the dots repo root: `ansible-playbook scaffold-wiki.yml -e "wiki_target=$(pwd)"`).
 
 2. Delegate to the `wiki-keeper` subagent via the `Agent` tool with `subagent_type: wiki-keeper` and a prompt that:
    - Includes the source path/URL from `$ARGUMENTS`.
