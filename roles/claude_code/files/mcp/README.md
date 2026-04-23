@@ -37,3 +37,4 @@ Delete the `.json` file and re-run the playbook.
 ## Currently Configured
 
 - `sonarqube.json` — SonarCloud/SonarQube code analysis (requires SONARQUBE_TOKEN)
+- `qmd.json` — local markdown search (hybrid BM25 + vector + rerank) over project `docs/`. Companion to the LLM-wiki pattern (see `roles/llm_wiki/`). npm package `@tobilu/qmd`; binary `qmd` on PATH. MCP: `qmd mcp` (stdio). One-time per project: `qmd collection add docs/ && qmd embed`.

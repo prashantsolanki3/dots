@@ -17,6 +17,13 @@ Agent teams are enabled. Use `claude --agent orchestrator` to start a continuous
 - Always read AGENTS.md and AI_INSTRUCTIONS.md in the project repo first
 - Prefer worktree isolation for implementation work
 
+## Persistent knowledge (LLM-wiki)
+
+- If a project has `docs/CLAUDE.md`, it is using the LLM-maintained wiki pattern. Read that schema first before writing to `docs/`.
+- Use `/wiki-ingest <path-or-url>` to file sources, `/wiki-query <question>` to search+synthesise, `/wiki-lint` to health-check.
+- The `wiki-keeper` subagent is the only agent that writes to the living zone. Other agents are read-only against the wiki.
+- Local search via `qmd` (npm `@tobilu/qmd`; MCP auto-registered). One-time per project: `qmd collection add docs/ && qmd embed`.
+
 ## Effort level
 
 `effortLevel` is pinned to `max` in `~/.claude/settings.json` and self-heals
