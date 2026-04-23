@@ -10,6 +10,7 @@
     dev_tools_enabled: true
     bun_enabled: true
     claude_code_enabled: true
+    llm_wiki_enabled: true
     ssh_enabled: true
   roles:
     - role: base
@@ -28,5 +29,10 @@
       when: bun_enabled | bool
     - role: claude_code
       when: claude_code_enabled | bool
+    # llm_wiki after claude_code — shares the claude_npm_packages mechanism
+    # for qmd, and the claude_code role is responsible for merging
+    # files/mcp/qmd.json into ~/.claude.json before llm_wiki uses it.
+    - role: llm_wiki
+      when: llm_wiki_enabled | bool
     - role: ssh
       when: ssh_enabled | bool

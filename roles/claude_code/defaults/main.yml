@@ -59,6 +59,14 @@ claude_custom_plugins:
 claude_npm_packages:
   - impeccable
   - sonarqube-mcp-server
+  # qmd: local markdown search (BM25 + vector + rerank) with bundled MCP
+  # server. Backs the llm_wiki role's /wiki-ingest, /wiki-query, /wiki-lint
+  # slash commands. MCP config lives in files/mcp/qmd.json.
+  # NOTE: The "qmd" name on npmjs is an abandoned 2016 stub — the real
+  # package is "@tobilu/qmd" (https://github.com/tobilu/qmd).
+  - "@tobilu/qmd"
+  # Uncomment to render wiki pages as slide decks:
+  # - "@marp-team/marp-cli"
 
 # ── MCP servers (merged into ~/.claude.json from files/mcp/*.json) ─────────
 # Drop .json files in files/mcp/ to add servers. See files/mcp/README.md.
