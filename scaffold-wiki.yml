@@ -1,0 +1,25 @@
+---
+# Scaffold the LLM-wiki structure into a target repo.
+#
+# Usage:
+#   ansible-playbook scaffold-wiki.yml \
+#     -e "wiki_target=/abs/path/to/repo"
+#
+# Optional overrides:
+#   -e "wiki_dir=docs"            # default — the subdir inside wiki_target
+#   -e "wiki_project_name=foo"    # default — derived from wiki_target basename
+#
+# Idempotent: never overwrites existing CLAUDE.md / INDEX.md / LOG.md /
+# READMEs / templates. Re-running only fills in missing files.
+
+- name: Scaffold LLM wiki
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    scaffold_wiki: true
+    install_qmd: false       # assume already installed via dev.yml
+    install_marp: false
+    install_pandoc: false
+  roles:
+    - role: llm_wiki

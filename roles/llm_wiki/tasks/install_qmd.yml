@@ -1,0 +1,27 @@
+---
+# Install @tobilu/qmd globally via npm.
+#
+# Default path: this task is gated by install_qmd (defaults to FALSE in
+# defaults/main.yml) because roles/claude_code/ already installs
+# @tobilu/qmd via claude_npm_packages. Flip install_qmd=true to force a
+# dedicated install, e.g. when running --tags llm_wiki in isolation.
+#
+# https://github.com/tobilu/qmd — the unscoped "qmd" package on npmjs is
+# an abandoned 2016 stub. Binary lands as `qmd` on PATH after install.
+# The MCP registration for Claude Code lives in
+# roles/claude_code/files/mcp/qmd.json and is merged into ~/.claude.json
+# by the claude_code role — not duplicated here.
+
+- name: "LLM Wiki | Install @tobilu/qmd via npm (global)"
+  become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
+  community.general.npm:
+    name: "@tobilu/qmd"
+    global: true
+    state: present
+  register: qmd_install
+
+- name: "LLM Wiki | Qmd install summary"
+  ansible.builtin.debug:
+    msg: >-
+      @tobilu/qmd {{ 'installed' if qmd_install is changed else 'already present' }}.
+      Per-project setup: `qmd collection add docs/ && qmd embed`.

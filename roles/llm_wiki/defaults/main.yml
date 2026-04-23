@@ -1,0 +1,37 @@
+---
+# roles/llm_wiki - Install tooling for the LLM-maintained wiki pattern
+# and optionally scaffold the wiki structure into a target repo.
+#
+# The pattern itself (agent, slash commands, skill, qmd MCP) is deployed
+# globally by roles/claude_code/. This role adds:
+#   - qmd install (opt in/out)
+#   - optional marp-cli / pandoc for source conversion
+#   - a scaffold step that creates the wiki structure in a target repo
+#
+# Usage:
+#   # Just install tools (default in dev.yml):
+#   ansible-playbook dev.yml --tags llm_wiki
+#
+#   # Scaffold the wiki into a specific repo:
+#   ansible-playbook scaffold-wiki.yml -e "wiki_target=/abs/path/to/repo"
+
+llm_wiki_enabled: true
+
+# qmd: local markdown search (BM25 + vector + rerank) with MCP server.
+# https://github.com/tobilu/qmd — installed via npm (@tobilu/qmd) globally.
+# Default OFF here because claude_code role's claude_npm_packages already
+# installs @tobilu/qmd. Flip to true to force a reinstall/upgrade in
+# isolation, e.g. when running --tags llm_wiki without --tags claude_code.
+install_qmd: false
+
+# Optional extras. Default off — flip per-host or via --extra-vars.
+install_marp: false      # @marp-team/marp-cli — render wiki pages as slides
+install_pandoc: false    # pandoc — convert PDFs/DOCX to markdown for ingest
+
+# Scaffold behaviour. Default off — scaffold is opt-in via a separate
+# top-level playbook (scaffold-wiki.yml) so routine dev.yml runs don't
+# touch target repos.
+scaffold_wiki: false
+wiki_target: ""          # absolute path to the repo root to scaffold into
+wiki_dir: "docs"         # directory inside wiki_target that holds the wiki
+wiki_project_name: "{{ wiki_target | basename }}"

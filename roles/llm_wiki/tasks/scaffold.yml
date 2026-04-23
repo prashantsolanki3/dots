@@ -1,0 +1,116 @@
+---
+# Scaffold the LLM-wiki structure into a target repo.
+# Idempotent — never overwrites existing files (force: false by default on
+# copy/template).
+
+- name: "LLM Wiki scaffold | Validate wiki_target is absolute and exists"
+  ansible.builtin.assert:
+    that:
+      - wiki_target | length > 0
+      - wiki_target is match("^/")
+    fail_msg: >-
+      wiki_target must be an absolute path. Got: "{{ wiki_target }}".
+      Example: -e "wiki_target=/Users/you/Playground/some-repo"
+
+- name: "LLM Wiki scaffold | Ensure wiki_target exists"
+  ansible.builtin.stat:
+    path: "{{ wiki_target }}"
+  register: wiki_target_stat
+
+- name: "LLM Wiki scaffold | Fail if wiki_target doesn't exist"
+  ansible.builtin.assert:
+    that:
+      - wiki_target_stat.stat.exists
+      - wiki_target_stat.stat.isdir
+    fail_msg: "wiki_target {{ wiki_target }} does not exist or is not a directory."
+
+- name: "LLM Wiki scaffold | Create living-zone directory structure"
+  ansible.builtin.file:
+    path: "{{ wiki_target }}/{{ wiki_dir }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - sources
+    - sources/clippings
+    - sources/transcripts
+    - sources/papers
+    - sources/assets
+    - entities
+    - concepts
+    - decisions
+    - runbooks
+    - synthesis
+    - templates
+
+- name: "LLM Wiki scaffold | Drop .gitkeep in empty subdirs"
+  ansible.builtin.copy:
+    content: ""
+    dest: "{{ wiki_target }}/{{ wiki_dir }}/{{ item }}/.gitkeep"
+    mode: "0644"
+    force: false
+  loop:
+    - sources/clippings
+    - sources/transcripts
+    - sources/papers
+    - sources/assets
+    - entities
+    - concepts
+    - decisions
+    - runbooks
+
+- name: "LLM Wiki scaffold | Render schema (CLAUDE.md) if missing"
+  ansible.builtin.template:
+    src: CLAUDE.md.j2
+    dest: "{{ wiki_target }}/{{ wiki_dir }}/CLAUDE.md"
+    mode: "0644"
+    force: false
+
+- name: "LLM Wiki scaffold | Render INDEX.md if missing"
+  ansible.builtin.template:
+    src: INDEX.md.j2
+    dest: "{{ wiki_target }}/{{ wiki_dir }}/INDEX.md"
+    mode: "0644"
+    force: false
+
+- name: "LLM Wiki scaffold | Render LOG.md if missing"
+  ansible.builtin.template:
+    src: LOG.md.j2
+    dest: "{{ wiki_target }}/{{ wiki_dir }}/LOG.md"
+    mode: "0644"
+    force: false
+
+- name: "LLM Wiki scaffold | Render sources/README if missing"
+  ansible.builtin.template:
+    src: README-sources.md.j2
+    dest: "{{ wiki_target }}/{{ wiki_dir }}/sources/README.md"
+    mode: "0644"
+    force: false
+
+- name: "LLM Wiki scaffold | Render synthesis/README if missing"
+  ansible.builtin.template:
+    src: README-synthesis.md.j2
+    dest: "{{ wiki_target }}/{{ wiki_dir }}/synthesis/README.md"
+    mode: "0644"
+    force: false
+
+- name: "LLM Wiki scaffold | Copy page templates (entity/concept/decision/runbook/source)"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ wiki_target }}/{{ wiki_dir }}/templates/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    mode: "0644"
+    force: false
+  loop: "{{ query('fileglob', role_path + '/templates/*-template.md.j2') }}"
+
+- name: "LLM Wiki scaffold | Summary"
+  ansible.builtin.debug:
+    msg: |
+      Wiki scaffolded at {{ wiki_target }}/{{ wiki_dir }}/.
+
+      Next steps:
+        cd {{ wiki_target }}
+        qmd collection add {{ wiki_dir }}/ && qmd embed
+        open Claude Code; try /wiki-ingest <some-source> or /wiki-query <some-question>
+
+      Schema: {{ wiki_target }}/{{ wiki_dir }}/CLAUDE.md
+      Catalog: {{ wiki_target }}/{{ wiki_dir }}/INDEX.md
+      Templates: {{ wiki_target }}/{{ wiki_dir }}/templates/
