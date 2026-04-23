@@ -3,7 +3,7 @@
 # Idempotent — never overwrites existing files (force: false by default on
 # copy/template).
 
-- name: "llm_wiki scaffold | validate wiki_target is absolute and exists"
+- name: "LLM Wiki scaffold | Validate wiki_target is absolute and exists"
   ansible.builtin.assert:
     that:
       - wiki_target | length > 0
@@ -12,19 +12,19 @@
       wiki_target must be an absolute path. Got: "{{ wiki_target }}".
       Example: -e "wiki_target=/Users/you/Playground/some-repo"
 
-- name: "llm_wiki scaffold | ensure wiki_target exists"
+- name: "LLM Wiki scaffold | Ensure wiki_target exists"
   ansible.builtin.stat:
     path: "{{ wiki_target }}"
   register: wiki_target_stat
 
-- name: "llm_wiki scaffold | fail if wiki_target doesn't exist"
+- name: "LLM Wiki scaffold | Fail if wiki_target doesn't exist"
   ansible.builtin.assert:
     that:
       - wiki_target_stat.stat.exists
       - wiki_target_stat.stat.isdir
     fail_msg: "wiki_target {{ wiki_target }} does not exist or is not a directory."
 
-- name: "llm_wiki scaffold | create living-zone directory structure"
+- name: "LLM Wiki scaffold | Create living-zone directory structure"
   ansible.builtin.file:
     path: "{{ wiki_target }}/{{ wiki_dir }}/{{ item }}"
     state: directory
@@ -42,7 +42,7 @@
     - synthesis
     - templates
 
-- name: "llm_wiki scaffold | drop .gitkeep in empty subdirs"
+- name: "LLM Wiki scaffold | Drop .gitkeep in empty subdirs"
   ansible.builtin.copy:
     content: ""
     dest: "{{ wiki_target }}/{{ wiki_dir }}/{{ item }}/.gitkeep"
@@ -58,42 +58,42 @@
     - decisions
     - runbooks
 
-- name: "llm_wiki scaffold | render schema (CLAUDE.md) if missing"
+- name: "LLM Wiki scaffold | Render schema (CLAUDE.md) if missing"
   ansible.builtin.template:
     src: CLAUDE.md.j2
     dest: "{{ wiki_target }}/{{ wiki_dir }}/CLAUDE.md"
     mode: "0644"
     force: false
 
-- name: "llm_wiki scaffold | render INDEX.md if missing"
+- name: "LLM Wiki scaffold | Render INDEX.md if missing"
   ansible.builtin.template:
     src: INDEX.md.j2
     dest: "{{ wiki_target }}/{{ wiki_dir }}/INDEX.md"
     mode: "0644"
     force: false
 
-- name: "llm_wiki scaffold | render LOG.md if missing"
+- name: "LLM Wiki scaffold | Render LOG.md if missing"
   ansible.builtin.template:
     src: LOG.md.j2
     dest: "{{ wiki_target }}/{{ wiki_dir }}/LOG.md"
     mode: "0644"
     force: false
 
-- name: "llm_wiki scaffold | render sources/README if missing"
+- name: "LLM Wiki scaffold | Render sources/README if missing"
   ansible.builtin.template:
     src: README-sources.md.j2
     dest: "{{ wiki_target }}/{{ wiki_dir }}/sources/README.md"
     mode: "0644"
     force: false
 
-- name: "llm_wiki scaffold | render synthesis/README if missing"
+- name: "LLM Wiki scaffold | Render synthesis/README if missing"
   ansible.builtin.template:
     src: README-synthesis.md.j2
     dest: "{{ wiki_target }}/{{ wiki_dir }}/synthesis/README.md"
     mode: "0644"
     force: false
 
-- name: "llm_wiki scaffold | copy page templates (entity/concept/decision/runbook/source)"
+- name: "LLM Wiki scaffold | Copy page templates (entity/concept/decision/runbook/source)"
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ wiki_target }}/{{ wiki_dir }}/templates/{{ item | basename | regex_replace('\\.j2$', '') }}"
@@ -101,7 +101,7 @@
     force: false
   loop: "{{ query('fileglob', role_path + '/templates/*-template.md.j2') }}"
 
-- name: "llm_wiki scaffold | summary"
+- name: "LLM Wiki scaffold | Summary"
   ansible.builtin.debug:
     msg: |
       Wiki scaffolded at {{ wiki_target }}/{{ wiki_dir }}/.

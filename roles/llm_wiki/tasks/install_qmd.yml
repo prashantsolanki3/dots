@@ -9,14 +9,14 @@
 # roles/claude_code/files/mcp/qmd.json and is merged into ~/.claude.json
 # by the claude_code role — not duplicated here.
 
-- name: "llm_wiki | check if qmd is already installed"
+- name: "LLM Wiki | Check if qmd is already installed"
   ansible.builtin.command: qmd --version
   register: qmd_version_check
   changed_when: false
   failed_when: false
   check_mode: false
 
-- name: "llm_wiki | install qmd via npm (global) — @tobilu/qmd"
+- name: "LLM Wiki | Install qmd via npm (global) — @tobilu/qmd"
   become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
   community.general.npm:
     name: "@tobilu/qmd"
@@ -25,7 +25,7 @@
   when: qmd_version_check.rc != 0 or qmd_version_check.stdout == ''
   register: qmd_install
 
-- name: "llm_wiki | qmd install summary"
+- name: "LLM Wiki | Qmd install summary"
   ansible.builtin.debug:
     msg: >-
       qmd {{ 'already installed at version ' + qmd_version_check.stdout

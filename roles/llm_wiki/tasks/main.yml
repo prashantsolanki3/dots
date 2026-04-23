@@ -2,19 +2,19 @@
 # Orchestrator for the llm_wiki role.
 # Gate everything on llm_wiki_enabled so the role can be skipped cleanly.
 
-- name: "llm_wiki | install qmd"
+- name: "LLM Wiki | Install qmd"
   ansible.builtin.include_tasks: install_qmd.yml
   when:
     - llm_wiki_enabled | bool
     - install_qmd | bool
   tags: [llm_wiki, llm_wiki_install]
 
-- name: "llm_wiki | install optional tools (marp, pandoc)"
+- name: "LLM Wiki | Install optional tools (marp, pandoc)"
   ansible.builtin.include_tasks: install_optional_tools.yml
   when: llm_wiki_enabled | bool
   tags: [llm_wiki, llm_wiki_install]
 
-- name: "llm_wiki | scaffold wiki structure into target repo"
+- name: "LLM Wiki | Scaffold wiki structure into target repo"
   ansible.builtin.include_tasks: scaffold.yml
   when:
     - llm_wiki_enabled | bool
