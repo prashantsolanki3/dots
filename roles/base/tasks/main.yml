@@ -1,34 +1,41 @@
 ---
 # roles/base - System update and base package installation (Ubuntu/Debian)
+#
+# All tasks are apt-based and Debian/Ubuntu-only. Gated at block-level so
+# running this role on macOS is a clean no-op instead of failing with a
+# sudo prompt on `apt-get update`.
 
-- name: Update apt cache
-  become: true
-  ansible.builtin.apt:
-    update_cache: true
-  register: result
-  until: result is not failed
-  retries: "{{ apt_retries }}"
-  delay: "{{ apt_retry_delay }}"
-  when: update_system | default(true) | bool
+- name: Base - system update + package install (Debian/Ubuntu only)
+  when: ansible_facts['os_family'] == "Debian"
+  block:
+    - name: Update apt cache
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+      register: result
+      until: result is not failed
+      retries: "{{ apt_retries }}"
+      delay: "{{ apt_retry_delay }}"
+      when: update_system | default(true) | bool
 
-- name: Upgrade packages
-  become: true
-  ansible.builtin.apt:
-    upgrade: true
-    autoremove: true
-  register: result
-  until: result is not failed
-  retries: "{{ apt_retries }}"
-  delay: "{{ apt_retry_delay }}"
-  when: update_system | default(true) | bool
+    - name: Upgrade packages
+      become: true
+      ansible.builtin.apt:
+        upgrade: true
+        autoremove: true
+      register: result
+      until: result is not failed
+      retries: "{{ apt_retries }}"
+      delay: "{{ apt_retry_delay }}"
+      when: update_system | default(true) | bool
 
-- name: Install base system packages
-  become: true
-  ansible.builtin.package:
-    name: "{{ base_packages }}"
-    state: present
-  register: result
-  until: result is not failed
-  retries: "{{ apt_retries }}"
-  delay: "{{ apt_retry_delay }}"
-  tags: ['base_packages', 'packages']
+    - name: Install base system packages
+      become: true
+      ansible.builtin.package:
+        name: "{{ base_packages }}"
+        state: present
+      register: result
+      until: result is not failed
+      retries: "{{ apt_retries }}"
+      delay: "{{ apt_retry_delay }}"
+      tags: ['base_packages', 'packages']

@@ -432,12 +432,17 @@
     mode: '0755'
 
 # ── npm packages (for npx-based skills/tools) ───────────────────────────────
+# `become: true` only on Linux — on macOS, global npm typically runs under
+# nvm or a user-prefix, so sudo would break the install (wrong PATH) or
+# prompt unnecessarily. Pattern matches roles/llm_wiki/tasks/install_qmd.yml.
 - name: Install npm packages for Claude Code skills
-  become: true
-  ansible.builtin.command: "npm install -g {{ item }}"
+  become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
+  community.general.npm:
+    name: "{{ item }}"
+    global: true
+    state: present
   loop: "{{ claude_npm_packages | default([]) }}"
   when: claude_npm_packages is defined and claude_npm_packages | length > 0
-  changed_when: true
 
 # ── Official marketplace plugins ─────────────────────────────────────────────
 - name: Install official marketplace plugins
