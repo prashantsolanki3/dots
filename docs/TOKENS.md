@@ -22,7 +22,7 @@ Every credential the dots-managed Claude Code setup may consume. Set the ones yo
 | Variable | MCP server | Notes |
 |---|---|---|
 | `SONARQUBE_TOKEN` | `sonarqube` | User token from SonarCloud (`https://sonarcloud.io/account/security`) or self-hosted SonarQube. |
-| `SONARQUBE_ORGANIZATION` | `sonarqube` | Org slug, e.g. `my-org`. Only needed for SonarCloud. Override `SONARQUBE_URL` in `mcp/sonarqube.json` for self-hosted. |
+| `SONARQUBE_ORGANIZATION` | `sonarqube` | Org slug, e.g. `my-org`. Only needed for SonarCloud. For self-hosted, override `SONARQUBE_URL` in `roles/claude_code/files/mcp/sonarqube.json` (the resulting `mcpServers` entry lands in `~/.claude.json`). |
 
 `qmd` MCP needs no auth — it indexes local markdown only.
 
@@ -49,11 +49,12 @@ The `claude plugin install` and MCP `${VAR}` substitution both read from the liv
 
 ### Docker container (`copy` mode)
 
-Pass through `docker-compose.yml`:
+Pass these variables through in your Compose file or container environment
+(replace `your-service` with whatever you've named the service):
 
 ```yaml
 services:
-  claude-dev:
+  your-service:
     environment:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GH_TOKEN:          ${GH_TOKEN:-}
@@ -64,7 +65,9 @@ services:
       SONARQUBE_ORGANIZATION: ${SONARQUBE_ORGANIZATION:-}
 ```
 
-…or use `env_file: .env` and source from a host `.env` (gitignored).
+…or use `env_file: .env` and source from a host `.env`. Dots itself ships
+`docker-compose.test.yml` for the Ansible test harness; downstream projects
+provide their own compose file (see `prashantsolanki3/yolo` for an example).
 
 ## Verification
 
@@ -90,4 +93,4 @@ If a plugin or MCP fails silently, run `claude --debug ...` and check `~/.claude
 2. If it's for a new MCP, drop a JSON file in `roles/claude_code/files/mcp/<name>.json` with `${VAR}` placeholders — see `files/mcp/README.md`.
 3. Re-run `ansible-playbook dev.yml` (or restart the dev container).
 
-Never commit real tokens. `.env`, `~/.claude/active-provider.env`, and `~/.config/claudeclaw/env` are gitignored — keep it that way.
+Never commit real tokens. Keep `.env`, `~/.claude/active-provider.env`, and `~/.config/claudeclaw/env` out of any repo — if you keep a project `.env`, make sure it's in `.gitignore`.
