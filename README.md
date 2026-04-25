@@ -83,6 +83,10 @@ Clone and Setup Development VM Terraform Repo. Follow the instructions to run th
 
     Once the playbooks are applied, you might need to reboot.
 
+## Tokens & secrets
+
+Plugins and MCP servers consume environment variables for auth (GitHub, SonarQube, Telegram, etc.). See [`docs/TOKENS.md`](docs/TOKENS.md) for the full list and where to set them on macOS, Linux, and Docker.
+
 ## Credits
 
 * [Addvilz](https://github.com/Addvilz/dots)
