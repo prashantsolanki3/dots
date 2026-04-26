@@ -14,8 +14,9 @@ Every credential the dots-managed Claude Code setup may consume. Set the ones yo
 |---|---|---|---|
 | `GH_TOKEN` / `GITHUB_TOKEN` | `github` | yes (if used) | Personal access token. `repo` scope for private repos. The `gh` CLI also picks this up. |
 | `TFE_TOKEN` | `terraform` | optional | HCP Terraform / TFE API token — only needed for private registries and `create_run` / workspace mutations. Public registry browsing works without it. |
-| `TELEGRAM_BOT_TOKEN` | `telegram`, `claudeclaw` | yes (if used) | Bot token from [@BotFather](https://t.me/botfather). Same token shared between the `telegram` plugin and `claudeclaw`'s telegram channel. |
-| `DISCORD_BOT_TOKEN` | `claudeclaw` | optional | Only required if you enable the Discord channel in claudeclaw. |
+| `TELEGRAM_BOT_TOKEN` | `telegram` | yes (if used) | Bot token from [@BotFather](https://t.me/botfather). Read by the official `telegram` MCP server. |
+| `TELEGRAM_TOKEN` | `claudeclaw` | yes (if used) | Same value as `TELEGRAM_BOT_TOKEN` — claudeclaw uses a different env var name (upstream PR [#128](https://github.com/moazbuilds/claudeclaw/pull/128)). Set both if you use both. |
+| `DISCORD_TOKEN` | `claudeclaw` | optional | Bot token from [discord.com/developers/applications](https://discord.com/developers/applications). Required only if you enable claudeclaw's Discord channel. |
 
 ## MCP-server auth (defined in `roles/claude_code/files/mcp/`)
 
@@ -43,6 +44,8 @@ export GH_TOKEN="ghp_..."
 export SONARQUBE_TOKEN="..."
 export SONARQUBE_ORGANIZATION="my-org"
 export TELEGRAM_BOT_TOKEN="..."
+export TELEGRAM_TOKEN="$TELEGRAM_BOT_TOKEN"   # claudeclaw reads this name
+export DISCORD_TOKEN="..."
 ```
 
 The `claude plugin install` and MCP `${VAR}` substitution both read from the live shell environment.
@@ -60,7 +63,8 @@ services:
       GH_TOKEN:          ${GH_TOKEN:-}
       TFE_TOKEN:         ${TFE_TOKEN:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      TELEGRAM_TOKEN:    ${TELEGRAM_TOKEN:-${TELEGRAM_BOT_TOKEN:-}}
+      DISCORD_TOKEN:     ${DISCORD_TOKEN:-}
       SONARQUBE_TOKEN:   ${SONARQUBE_TOKEN:-}
       SONARQUBE_ORGANIZATION: ${SONARQUBE_ORGANIZATION:-}
 ```
