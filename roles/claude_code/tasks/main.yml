@@ -4,6 +4,14 @@
 # Handles macOS (Homebrew) and Linux (npm) installations.
 # Config mode: "link" (default, symlinks for local dev) or "copy" (for Docker).
 #
+# Generic Claude Code assets (agents / commands / skills / hooks / mcp) are NOT
+# shipped by this role anymore. They live in ai-toolkit
+# (@prashantsolanki3/ai-toolkit), which this role invokes via npx to install
+# the `dots-baseline` preset into ~/.claude. dots only orchestrates; ai-toolkit
+# owns the content. Machine-level, dots-specific config (settings.json,
+# settings.local.json, CLAUDE.md, claudeclaw, install.sh, entrypoint.sh,
+# ~/.local/bin scripts, plugin/npm install lists) stays here.
+#
 # NOTE: The "link" config mode uses controller-local paths (role_path) for
 # symlink sources. This is intentional — both mac.yml and dev.yml run with
 # connection: local, so controller paths == target paths. The "copy" mode
@@ -33,13 +41,6 @@
     global: true
     state: latest
   when: ansible_facts['os_family'] == "Debian"
-
-# ── Create config directories ───────────────────────────────────────────────
-- name: Ensure ~/.claude/agents directory exists
-  ansible.builtin.file:
-    path: "{{ claude_home }}/.claude/agents"
-    state: directory
-    mode: '0755'
 
 # ── Config mode: symlink (local dev) ────────────────────────────────────────
 - name: Symlink Claude Code settings.json
@@ -73,94 +74,49 @@
     mode: '0644'
   when: claude_config_mode | default('link') == 'copy'
 
-# ── Agent files (both modes) ────────────────────────────────────────────────
-- name: Find agent files in role
-  ansible.builtin.find:
-    paths: "{{ role_path }}/files/agents"
-    patterns: "*.md"
-  register: agent_files
-
-- name: Symlink each agent file into ~/.claude/agents/
-  ansible.builtin.file:
-    src: "{{ item.path }}"
-    dest: "{{ claude_home }}/.claude/agents/{{ item.path | basename }}"
-    state: link
-    force: true
-  loop: "{{ agent_files.files }}"
-  when: claude_config_mode | default('link') == 'link'
-
-- name: Copy each agent file into ~/.claude/agents/
-  ansible.builtin.copy:
-    src: "{{ item.path }}"
-    dest: "{{ claude_home }}/.claude/agents/{{ item.path | basename }}"
-    mode: '0644'
-  loop: "{{ agent_files.files }}"
-  when: claude_config_mode | default('link') == 'copy'
-
-# ── Skills (user-level, available in all projects) ─────────────────────────
-- name: Ensure ~/.claude/skills directory exists
-  when: deploy_skills | default(true) | bool
-  ansible.builtin.file:
-    path: "{{ claude_home }}/.claude/skills"
-    state: directory
-    mode: '0755'
-
-- name: Find skill directories in role
-  when: deploy_skills | default(true) | bool
-  ansible.builtin.find:
-    paths: "{{ role_path }}/files/skills"
-    file_type: directory
-    recurse: false
-  register: skill_dirs
-
-- name: Symlink each skill directory into ~/.claude/skills/
-  ansible.builtin.file:
-    src: "{{ item.path }}"
-    dest: "{{ claude_home }}/.claude/skills/{{ item.path | basename }}"
-    state: link
-    force: true
-  loop: "{{ skill_dirs.files }}"
-  when: deploy_skills | default(true) | bool and claude_config_mode | default('link') == 'link'
-
-- name: Copy each skill directory into ~/.claude/skills/
-  ansible.builtin.copy:
-    src: "{{ item.path }}/"
-    dest: "{{ claude_home }}/.claude/skills/{{ item.path | basename }}/"
-    mode: '0644'
-  loop: "{{ skill_dirs.files }}"
-  when: deploy_skills | default(true) | bool and claude_config_mode | default('link') == 'copy'
-
-# ── Commands (user-level, available in all projects) ───────────────────────
-- name: Ensure ~/.claude/commands directory exists
-  when: deploy_commands | default(true) | bool
-  ansible.builtin.file:
-    path: "{{ claude_home }}/.claude/commands"
-    state: directory
-    mode: '0755'
-
-- name: Find command files in role
-  when: deploy_commands | default(true) | bool
-  ansible.builtin.find:
-    paths: "{{ role_path }}/files/commands"
-    patterns: "*.md"
-  register: command_files
-
-- name: Symlink each command file into ~/.claude/commands/
-  ansible.builtin.file:
-    src: "{{ item.path }}"
-    dest: "{{ claude_home }}/.claude/commands/{{ item.path | basename }}"
-    state: link
-    force: true
-  loop: "{{ command_files.files }}"
-  when: deploy_commands | default(true) | bool and claude_config_mode | default('link') == 'link'
-
-- name: Copy each command file into ~/.claude/commands/
-  ansible.builtin.copy:
-    src: "{{ item.path }}"
-    dest: "{{ claude_home }}/.claude/commands/{{ item.path | basename }}"
-    mode: '0644'
-  loop: "{{ command_files.files }}"
-  when: deploy_commands | default(true) | bool and claude_config_mode | default('link') == 'copy'
+# ── Claude Code assets via ai-toolkit (agents/commands/skills/hooks/mcp) ─────
+# ai-toolkit (@prashantsolanki3/ai-toolkit) is the single source of truth for
+# the generic Claude Code asset bundle. dots no longer ships its own copies of
+# agents/commands/skills/hooks/mcp — it invokes the published CLI to install
+# the `dots-baseline` preset into ~/.claude. ai-toolkit owns idempotency via
+# its own lockfile (~/.claude/.ai-toolkit-lock.json for global scope), so a
+# re-run over an unchanged tree is a no-op.
+#
+# `--link` is passed in `link` config mode (local dev) so edits to the source
+# propagate; `copy` mode (Docker) gets real files. Hooks are both copied AND
+# registered in settings.json by ai-toolkit, keyed off each hook's `event:`
+# frontmatter — so the old standalone hook-copy block is gone too.
+#
+# Pre-publish note: until @prashantsolanki3/ai-toolkit is on npm, the same
+# install works from the Git tag:
+#   npx --yes github:prashantsolanki3/ai-toolkit#v{{ ai_toolkit_version }} install ...
+- name: Install Claude Code assets via ai-toolkit (dots-baseline preset)
+  ansible.builtin.command:
+    argv:
+      - npx
+      - "--yes"
+      - "@prashantsolanki3/ai-toolkit@{{ ai_toolkit_version }}"
+      - install
+      - "--tool"
+      - claude-code
+      - "--scope"
+      - global
+      - "--preset"
+      - dots-baseline
+      - "--target"
+      - "{{ claude_home }}"
+      - "{{ '--link' if claude_config_mode | default('link') == 'link' else '--force' }}"
+  register: ai_toolkit_install
+  # ai-toolkit is idempotent via its lockfile; treat a re-applied/no-op run as
+  # unchanged. It prints install/update lines only when it actually writes.
+  changed_when: >-
+    ai_toolkit_install.rc == 0 and
+    ('installed' in ai_toolkit_install.stdout or
+     'updated' in ai_toolkit_install.stdout or
+     'wrote' in ai_toolkit_install.stdout)
+  when: claude_assets_via_ai_toolkit | default(true) | bool
+  environment:
+    HOME: "{{ claude_home }}"
 
 # ── Settings.local.json (pre-approved permissions) ──────────────────────────
 - name: Deploy settings.local.json (link)
@@ -178,39 +134,13 @@
     mode: '0644'
   when: claude_config_mode | default('link') == 'copy'
 
-# ── Hooks (user-level shell scripts invoked from settings.json hooks block) ──
-# preserve-effort-max.sh keeps effortLevel=max in ~/.claude/settings.json even
-# when the Claude CLI rewrites the file (toggling plugins, accepting prompts).
-#
-# Listing uses `fileglob` (a controller-side lookup) rather than `find` so the
-# task works in `copy` mode against remote/containerised targets — the role
-# files only exist on the controller.
-- name: Ensure ~/.claude/hooks directory exists
-  ansible.builtin.file:
-    path: "{{ claude_home }}/.claude/hooks"
-    state: directory
-    mode: '0755'
-
-- name: List hook scripts in role (controller-side)
-  ansible.builtin.set_fact:
-    hook_files: "{{ query('fileglob', role_path ~ '/files/hooks/*.sh') }}"
-
-- name: Symlink each hook script into ~/.claude/hooks/
-  ansible.builtin.file:
-    src: "{{ item }}"
-    dest: "{{ claude_home }}/.claude/hooks/{{ item | basename }}"
-    state: link
-    force: true
-  loop: "{{ hook_files }}"
-  when: claude_config_mode | default('link') == 'link'
-
-- name: Copy each hook script into ~/.claude/hooks/
-  ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: "{{ claude_home }}/.claude/hooks/{{ item | basename }}"
-    mode: '0755'
-  loop: "{{ hook_files }}"
-  when: claude_config_mode | default('link') == 'copy'
+# ── Hooks ────────────────────────────────────────────────────────────────────
+# Hook scripts (e.g. preserve-effort-max.sh, branch-from-main.sh) and their
+# settings.json registration are now owned by ai-toolkit and installed by the
+# "Install Claude Code assets via ai-toolkit" task above — ai-toolkit both
+# copies the script to ~/.claude/hooks/<name>.sh AND wires it into the
+# settings.json `hooks` block keyed off each hook's `event:` frontmatter,
+# which the old standalone copy could not do.
 
 # ── User-level CLI scripts (installed into ~/.local/bin/, on $PATH) ─────────
 # Wrapper scripts the user invokes from a shell or another tool. Currently:
@@ -399,30 +329,11 @@
     state: directory
     mode: '0755'
 
-# ── MCP servers (merged into ~/.claude.json) ────────────────────────────────
-# Each .json file in files/mcp/ defines MCP servers. They get merged into
-# the mcpServers key of ~/.claude.json (the global Claude config).
-- name: Find MCP server definition files
-  ansible.builtin.find:
-    paths: "{{ role_path }}/files/mcp"
-    patterns: "*.json"
-  register: mcp_files
-
-- name: Merge MCP server definitions into ~/.claude.json
-  ansible.builtin.shell: |
-    python3 << 'PYEOF'
-    import json, glob, os
-    claude_json_path = "{{ claude_home }}/.claude.json"
-    mcp_dir = "{{ role_path }}/files/mcp"
-    config = json.load(open(claude_json_path)) if os.path.exists(claude_json_path) else {}
-    if "mcpServers" not in config: config["mcpServers"] = {}
-    for f in glob.glob(os.path.join(mcp_dir, "*.json")):
-        config["mcpServers"].update(json.load(open(f)))
-    json.dump(config, open(claude_json_path, "w"), indent=2)
-    PYEOF
-  args:
-    executable: /bin/bash
-  when: mcp_files.matched > 0
+# ── MCP servers ──────────────────────────────────────────────────────────────
+# MCP server definitions (qmd, sonarqube, …) are now owned by ai-toolkit and
+# merged into the global Claude config by the "Install Claude Code assets via
+# ai-toolkit" task above (the `mcp` portion of the dots-baseline preset). dots
+# no longer ships files/mcp/*.json or hand-merges them into ~/.claude.json.
 
 # ── Install script ──────────────────────────────────────────────────────────
 - name: Copy Claude Code install script

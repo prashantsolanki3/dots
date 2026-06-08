@@ -8,9 +8,9 @@
 #
 # https://github.com/tobilu/qmd — the unscoped "qmd" package on npmjs is
 # an abandoned 2016 stub. Binary lands as `qmd` on PATH after install.
-# The MCP registration for Claude Code lives in
-# roles/claude_code/files/mcp/qmd.json and is merged into ~/.claude.json
-# by the claude_code role — not duplicated here.
+# The MCP registration for Claude Code is owned by ai-toolkit (the `mcp`
+# portion of the dots-baseline preset) and installed by the claude_code role
+# via npx — not duplicated here.
 
 - name: "LLM Wiki | Install @tobilu/qmd via npm (global)"
   become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
