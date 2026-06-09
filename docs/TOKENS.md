@@ -17,12 +17,16 @@ Every credential the dots-managed Claude Code setup may consume. Set the ones yo
 | `TELEGRAM_BOT_TOKEN` | `telegram`, `claudeclaw` | yes (if used) | Bot token from [@BotFather](https://t.me/botfather). Same token shared between the `telegram` plugin and `claudeclaw`'s telegram channel. |
 | `DISCORD_BOT_TOKEN` | `claudeclaw` | optional | Only required if you enable the Discord channel in claudeclaw. |
 
-## MCP-server auth (defined in `roles/claude_code/files/mcp/`)
+## MCP-server auth (MCP entries owned by ai-toolkit's `dots-baseline` preset)
+
+The MCP server definitions are installed by ai-toolkit (invoked from the
+`claude_code` role) and merged into the global Claude config; only the secret
+env vars they consume are listed here.
 
 | Variable | MCP server | Notes |
 |---|---|---|
 | `SONARQUBE_TOKEN` | `sonarqube` | User token from SonarCloud (`https://sonarcloud.io/account/security`) or self-hosted SonarQube. |
-| `SONARQUBE_ORGANIZATION` | `sonarqube` | Org slug, e.g. `my-org`. Only needed for SonarCloud. For self-hosted, override `SONARQUBE_URL` in `roles/claude_code/files/mcp/sonarqube.json` (the resulting `mcpServers` entry lands in `~/.claude.json`). |
+| `SONARQUBE_ORGANIZATION` | `sonarqube` | Org slug, e.g. `my-org`. Only needed for SonarCloud. For self-hosted, override `SONARQUBE_URL` in the `sonarqube` MCP entry shipped by ai-toolkit (the resulting `mcpServers` entry lands in `~/.claude.json`). |
 
 `qmd` MCP needs no auth — it indexes local markdown only.
 
@@ -90,7 +94,7 @@ If a plugin or MCP fails silently, run `claude --debug ...` and check `~/.claude
 ## Adding a new credential
 
 1. Pick an env var name and document it here.
-2. If it's for a new MCP, drop a JSON file in `roles/claude_code/files/mcp/<name>.json` with `${VAR}` placeholders — see `files/mcp/README.md`.
+2. If it's for a new MCP, add the server entry in ai-toolkit (the source of truth for Claude Code MCP/agents/commands/skills/hooks) with `${VAR}` placeholders, then bump `ai_toolkit_version` in `roles/claude_code/defaults/main.yml`.
 3. Re-run `ansible-playbook dev.yml` (or restart the dev container).
 
 Never commit real tokens. Keep `.env`, `~/.claude/active-provider.env`, and `~/.config/claudeclaw/env` out of any repo — if you keep a project `.env`, make sure it's in `.gitignore`.

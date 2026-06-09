@@ -73,22 +73,11 @@ echo "Target   : $CLAUDE_DIR"
 echo ""
 
 # ── Create target directory ───────────────────────────────────────────────────
-mkdir -p "$CLAUDE_DIR/agents" "$CLAUDE_DIR/hooks"
+mkdir -p "$CLAUDE_DIR"
 
 # ── Symlink core config files ─────────────────────────────────────────────────
 ln -sf "$SCRIPT_DIR/settings.json" "$CLAUDE_DIR/settings.json"
 echo "  linked  settings.json       → $SCRIPT_DIR/settings.json"
-
-# Hook scripts (referenced from settings.json `hooks` block).
-# Mirrors what roles/claude_code/tasks/main.yml does in the Ansible flow.
-HOOK_SRC="$(cd "$SCRIPT_DIR/../../roles/claude_code/files/hooks" 2>/dev/null && pwd || true)"
-if [ -n "$HOOK_SRC" ]; then
-  for h in "$HOOK_SRC/"*.sh; do
-    [ -f "$h" ] || continue
-    ln -sf "$h" "$CLAUDE_DIR/hooks/$(basename "$h")"
-    echo "  linked  hooks/$(basename "$h") → $h"
-  done
-fi
 
 ln -sf "$SCRIPT_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 echo "  linked  CLAUDE.md           → $SCRIPT_DIR/CLAUDE.md"
@@ -97,15 +86,25 @@ echo "  linked  CLAUDE.md           → $SCRIPT_DIR/CLAUDE.md"
 ln -sf "$PROVIDER_ENV" "$CLAUDE_DIR/active-provider.env"
 echo "  linked  active-provider.env → $PROVIDER_ENV"
 
-# ── Symlink individual agent files (safe: never replaces the whole agents dir) ─
-AGENT_COUNT=0
-for f in "$SCRIPT_DIR/agents/"*.md; do
-  [ -f "$f" ] || continue
-  ln -sf "$f" "$CLAUDE_DIR/agents/$(basename "$f")"
-  echo "  linked  agents/$(basename "$f") → $f"
-  AGENT_COUNT=$((AGENT_COUNT + 1))
-done
-[ "$AGENT_COUNT" -eq 0 ] && echo "  (no agent files to install)"
+# ── Generic assets (agents/commands/skills/hooks/mcp) via ai-toolkit ──────────
+# ai-toolkit (@prashantsolanki3/ai-toolkit) is the single source of truth for
+# the generic Claude Code asset bundle — this mirrors what
+# roles/claude_code/tasks/main.yml does in the Ansible flow. It installs the
+# `dots-baseline` preset into ~/.claude AND registers hooks (e.g.
+# preserve-effort-max) in settings.json keyed off each hook's `event:`
+# frontmatter — something the old in-repo symlink could not do. Requires npx
+# (bundled with Node). Fail loud if npx is missing rather than silently
+# skipping, so the effort-max hook can never quietly go uninstalled.
+AI_TOOLKIT_VERSION="1.0.0"
+if ! command -v npx >/dev/null 2>&1; then
+  echo "Error: npx not found on PATH — required to install Claude Code assets" >&2
+  echo "       via @prashantsolanki3/ai-toolkit. Install Node.js and re-run." >&2
+  exit 1
+fi
+echo "  installing agents/commands/skills/hooks/mcp via ai-toolkit (dots-baseline)…"
+npx --yes "@prashantsolanki3/ai-toolkit@${AI_TOOLKIT_VERSION}" install \
+  --tool claude-code --scope global --preset dots-baseline \
+  --target "$CLAUDE_DIR" --link
 
 # ── Shell activation instructions ────────────────────────────────────────────
 SHELL_NAME="$(basename "${SHELL:-}")"

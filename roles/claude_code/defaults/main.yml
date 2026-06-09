@@ -10,6 +10,21 @@ dotfiles_dir: "{{ playbook_dir }}"
 # Config install mode: "link" for local dev (symlinks), "copy" for Docker (files copied)
 claude_config_mode: link
 
+# ── ai-toolkit: source of truth for Claude Code assets ─────────────────────
+# Generic agents/commands/skills/hooks/mcp are installed by invoking
+# @prashantsolanki3/ai-toolkit (the `dots-baseline` preset) rather than from
+# copies shipped in this role. ai-toolkit is idempotent via its own lockfile,
+# so re-running the role is a no-op when already in sync. In `link` config
+# mode the install passes `--link` (symlinks back to the source); in `copy`
+# mode it passes `--force` (real files). Toggle the whole flow off with
+# claude_assets_via_ai_toolkit=false (e.g. to pin to a manually managed set).
+claude_assets_via_ai_toolkit: true
+
+# Version/tag of @prashantsolanki3/ai-toolkit to install. Pinned for
+# reproducible lockfiles. Pre-publish, the same ref works from the Git tag:
+#   npx --yes github:prashantsolanki3/ai-toolkit#v<version> install ...
+ai_toolkit_version: "1.0.0"
+
 # Target home directory.
 #
 # link mode (local dev): always uses the current user's $HOME — works on
@@ -61,21 +76,23 @@ claude_npm_packages:
   - sonarqube-mcp-server
   # qmd: local markdown search (BM25 + vector + rerank) with bundled MCP
   # server. Backs the llm_wiki role's /wiki-ingest, /wiki-query, /wiki-lint
-  # slash commands. MCP config lives in files/mcp/qmd.json.
+  # slash commands. Its MCP server entry is shipped by ai-toolkit (the `mcp`
+  # portion of the dots-baseline preset), not by this role.
   # NOTE: The "qmd" name on npmjs is an abandoned 2016 stub — the real
   # package is "@tobilu/qmd" (https://github.com/tobilu/qmd).
   - "@tobilu/qmd"
   # Uncomment to render wiki pages as slide decks:
   # - "@marp-team/marp-cli"
 
-# ── MCP servers (merged into ~/.claude.json from files/mcp/*.json) ─────────
-# Drop .json files in files/mcp/ to add servers. See files/mcp/README.md.
+# ── MCP servers / skills / commands ─────────────────────────────────────────
+# These assets are now installed by ai-toolkit (the dots-baseline preset) via
+# the claude_assets_via_ai_toolkit flow above — this role no longer ships or
+# deploys files/mcp, files/skills, or files/commands. The three vars below are
+# retained (default true) for backward compatibility with playbooks/overrides
+# that still reference them; they no longer gate any task in this role. To add
+# or change an asset, edit it in ai-toolkit, not here.
 deploy_mcp_servers: true
-
-# ── Local skills (deployed from files/skills/<name>/SKILL.md) ──────────────
 deploy_skills: true
-
-# ── Local commands (deployed from files/commands/<name>.md) ────────────────
 deploy_commands: true
 
 # ── ClaudeClaw auto-start (launchd on macOS, systemd user on Linux) ─────────
