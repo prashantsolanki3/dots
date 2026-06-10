@@ -61,11 +61,12 @@ USER_SETTINGS_TEMPLATE="$USER_CLAUDECLAW_DIR/settings.template.json"
 PROJECT_SETTINGS=".claude/claudeclaw/settings.json"
 
 # Source user-level env file if present so exported secrets become env vars
-# in the daemon process. ClaudeClaw then substitutes $VAR references in
-# settings.json at load time (requires claudeclaw >= the env-substitution
-# PR: https://github.com/moazbuilds/claudeclaw/pull/103; on older claudeclaw
-# the placeholder strings pass through literally and the user sees the
-# warning in daemon.log — safe but non-functional until upgrade).
+# in the daemon process. ClaudeClaw reads TELEGRAM_TOKEN and DISCORD_TOKEN
+# directly from its environment and uses them in place of the corresponding
+# fields in settings.json — see upstream
+# https://github.com/moazbuilds/claudeclaw/pull/128 (merged 2026-04-26).
+# Other vars (ANTHROPIC_API_KEY, GLM_API_KEY) are forwarded by cleanSpawnEnv
+# in runner.ts to spawned `claude` CLI processes.
 if [ -r "$USER_ENV_FILE" ]; then
   set -a
   # shellcheck disable=SC1090
