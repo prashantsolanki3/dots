@@ -84,6 +84,19 @@ claude_npm_packages:
   # Uncomment to render wiki pages as slide decks:
   # - "@marp-team/marp-cli"
 
+# ── uv tools (installed via `uv tool install`) ─────────────────────────────
+# Python CLIs that back Claude Code skills. uv itself is installed by
+# roles/dev_tools (install_uv).
+#
+# graphifyy: the `graphify` CLI — turns a repo into a queryable knowledge
+# graph (https://github.com/Graphify-Labs/graphify). The `[terraform]` extra
+# pulls tree-sitter-hcl; without it .tf/.hcl files contribute nothing. There
+# is no YAML parser at any extra level, so YAML-heavy repos only reach the
+# graph via semantic extraction, which needs ANTHROPIC_API_KEY (or another
+# backend key) — a Claude Code subscription alone is not enough.
+claude_uv_tools:
+  - "graphifyy[terraform]"
+
 # ── MCP servers / skills / commands ─────────────────────────────────────────
 # These assets are now installed by ai-toolkit (the dots-baseline preset) via
 # the claude_assets_via_ai_toolkit flow above — this role no longer ships or
