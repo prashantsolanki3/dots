@@ -60,6 +60,13 @@
   when: claude_config_mode | default('link') == 'link'
 
 # ── Config mode: copy (Docker) ──────────────────────────────────────────────
+- name: Ensure ~/.claude directory exists (copy mode)
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.claude"
+    state: directory
+    mode: '0755'
+  when: claude_config_mode | default('link') == 'copy'
+
 - name: Copy Claude Code settings.json
   ansible.builtin.copy:
     src: settings.json
@@ -354,6 +361,27 @@
     state: present
   loop: "{{ claude_npm_packages | default([]) }}"
   when: claude_npm_packages is defined and claude_npm_packages | length > 0
+
+# ── uv tools (Python CLIs used by Claude Code skills) ──────────────────────
+# Installed with `uv tool install` rather than pip so each CLI gets its own
+# isolated venv on $PATH (~/.local/bin). uv itself comes from roles/dev_tools.
+#
+# `graphifyy` ships the `graphify` CLI, which owns its own skill installer:
+# `graphify install --platform claude` writes ~/.claude/skills/graphify/ and
+# appends its own section to ~/.claude/CLAUDE.md. This role does not run that
+# installer — the canonical CLAUDE.md wording lives in files/CLAUDE.md under
+# "Codebase knowledge graph (graphify)", and `graphify install` would append a
+# second, competing section next to it. Run it by hand on a fresh machine to
+# lay down the skill files, then delete the section it appends.
+- name: Install uv tools for Claude Code skills
+  ansible.builtin.command: "uv tool install {{ item }}"
+  register: uv_tool_install
+  changed_when: "'Installed' in uv_tool_install.stdout or 'Installed' in uv_tool_install.stderr"
+  failed_when:
+    - uv_tool_install.rc != 0
+    - "'already installed' not in uv_tool_install.stderr"
+  loop: "{{ claude_uv_tools | default([]) }}"
+  when: claude_uv_tools | default([]) | length > 0
 
 # ── Official marketplace plugins ─────────────────────────────────────────────
 - name: Install official marketplace plugins

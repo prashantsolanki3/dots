@@ -30,3 +30,12 @@ Agent teams are enabled. Use `claude --agent orchestrator` to start a continuous
 on every session start via `~/.claude/hooks/preserve-effort-max.sh`. Do not
 override with `--effort low|medium|high` unless you genuinely need to throttle
 a one-off run.
+
+## Codebase knowledge graph (graphify)
+
+- The `graphify` skill (`~/.claude/skills/graphify/SKILL.md`) builds and queries a knowledge graph of a codebase. `/graphify` triggers it.
+- If a repo has a graph (`graphify-out/graph.json` or `GRAPH_REPORT.md`, in-repo or under `~/.graphify/projects/<repo>/`), query it before grepping or reading files broadly: `graphify query "<question>" --graph <path>`.
+- Also useful: `graphify explain "<node>"`, `graphify path "A" "B"`, `graphify affected "X"`, `graphify god-nodes`.
+- Regenerate after structural changes: `graphify update <path>` (AST only, no LLM) or `graphify extract <path> --out <dir>` for a full rebuild.
+- Never write `graphify-out/` into a repo with a clean-tree contract — use `--out` to park it outside, or gitignore it.
+- Subagents inherit this rule: prefer a graph query over a broad file sweep.
