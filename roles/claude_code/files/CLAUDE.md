@@ -39,3 +39,15 @@ a one-off run.
 - Regenerate after structural changes: `graphify update <path>` (AST only, no LLM) or `graphify extract <path> --out <dir>` for a full rebuild.
 - Never write `graphify-out/` into a repo with a clean-tree contract — use `--out` to park it outside, or gitignore it.
 - Subagents inherit this rule: prefer a graph query over a broad file sweep.
+
+## Delegation-first (agent roster)
+
+- Classify every request against the roster before working on it inline; delegate to the owning subagent.
+- `gitops-operator` — repo edits, manifests, terraform, ansible, PRs. Worktree-isolated and PR-only.
+- `cluster-medic` — k3s diagnosis, read-only first; bounded fixes only with per-item authorization.
+- `secret-wrangler` — anything touching a credential: SSM, External Secrets, API keys, rotations.
+- `access-navigator` — browser work on homelab apps. `media-librarian` — arr/deluge/plex/tdarr.
+- `homelab-architect` — design, trade-offs, cost tables; read-only, never implements.
+- Skills: `/revenant-wave` orchestrates a batch, `/pr-land` merges and verifies, `/live-truth` checks a doc claim before you build on it, `/pending-on-human` regenerates the user's own task list, `/lesson-harvest` runs after any surprising run.
+- Ideate only when no agent matches. A roster miss triggers `/lesson-harvest` to evaluate creating a new asset.
+- Every agent file ends with an append-only `## Lessons` section. Before finishing any run where reality contradicted the instructions, append a dated entry there — never rewrite or delete existing ones.
