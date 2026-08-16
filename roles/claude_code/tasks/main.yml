@@ -60,6 +60,13 @@
   when: claude_config_mode | default('link') == 'link'
 
 # ── Config mode: copy (Docker) ──────────────────────────────────────────────
+- name: Ensure ~/.claude directory exists (copy mode)
+  ansible.builtin.file:
+    path: "{{ claude_home }}/.claude"
+    state: directory
+    mode: '0755'
+  when: claude_config_mode | default('link') == 'copy'
+
 - name: Copy Claude Code settings.json
   ansible.builtin.copy:
     src: settings.json
