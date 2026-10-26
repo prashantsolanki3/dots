@@ -2,9 +2,19 @@
 
 This template seeds per-project settings at `<project>/.claude/claudeclaw/settings.json`
 on first `claudeclaw-start` in a new directory. Non-secret defaults come from the
-Ansible vars below; secrets live in `~/.config/claudeclaw/env` and are resolved by
-ClaudeClaw at load time (requires the env-var-substitution feature — see
-https://github.com/moazbuilds/claudeclaw/pull/103).
+Ansible vars below.
+
+Bot tokens are sourced from `~/.config/claudeclaw/env` and override the
+`telegram.token` / `discord.token` fields at daemon load time. ClaudeClaw reads
+`process.env.TELEGRAM_TOKEN` and `process.env.DISCORD_TOKEN` directly — see upstream
+https://github.com/moazbuilds/claudeclaw/pull/128 (merged 2026-04-26). The token
+fields below stay empty so the env values win whether or not the user populates them.
+
+`api` / `fallback.api` also default to empty: when set, the daemon exports them as
+`ANTHROPIC_AUTH_TOKEN` to spawned `claude` CLIs, which bypasses the platform credential
+store. Most users want keychain-based OAuth — leave these empty and put
+`export ANTHROPIC_API_KEY=...` in `~/.config/claudeclaw/env` only if you specifically
+need a long-lived API key (headless VPS, etc.).
 
 Override any field per-host via group_vars / host_vars or `-e claudeclaw_<field>=...`:
 
@@ -25,11 +35,11 @@ Override any field per-host via group_vars / host_vars or `-e claudeclaw_<field>
 -#}
 {
   "model": "{{ claudeclaw_model | default('opus') }}",
-  "api": "$ANTHROPIC_API_KEY",
+  "api": "",
   "sessionTimeoutMs": {{ claudeclaw_session_timeout_ms | default(1200000) }},
   "fallback": {
     "model": "{{ claudeclaw_fallback_model | default('glm') }}",
-    "api": "$GLM_API_KEY"
+    "api": ""
   },
   "agentic": {
     "enabled": {{ claudeclaw_agentic_enabled | default(true) | tojson }},
@@ -55,11 +65,11 @@ Override any field per-host via group_vars / host_vars or `-e claudeclaw_<field>
     "prompt": {{ claudeclaw_heartbeat_prompt | default('') | tojson }}
   },
   "telegram": {
-    "token": "$TELEGRAM_BOT_TOKEN",
+    "token": "",
     "allowedUserIds": {{ claudeclaw_telegram_user_ids | default([]) | tojson }}
   },
   "discord": {
-    "token": "$DISCORD_BOT_TOKEN",
+    "token": "",
     "allowedUserIds": {{ claudeclaw_discord_user_ids | default([]) | tojson }},
     "listenChannels": {{ claudeclaw_discord_channels | default([]) | tojson }}
   },
